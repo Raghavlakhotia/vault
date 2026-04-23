@@ -1,15 +1,18 @@
+// Returns magnitude only — callers prepend "−" for negative values
 export function formatINR(amount: number): string {
   return `₹${Math.abs(amount).toLocaleString('en-IN')}`
 }
 
 export function formatDate(dateStr: string): string {
-  const [, m, d] = dateStr.split('-')
+  const parts = dateStr?.split('-')
+  if (!parts || parts.length < 3) return dateStr ?? ''
+  const [, m, d] = parts
   const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
   return `${parseInt(d)} ${months[parseInt(m) - 1]}`
 }
 
-export function currentMonth(): string {
-  return new Date().toISOString().slice(0, 7)
+export function currentMonth(now: Date = new Date()): string {
+  return now.toISOString().slice(0, 7)
 }
 
 export function prevMonth(month: string): string {
@@ -26,10 +29,8 @@ export function nextMonth(month: string): string {
 
 export function formatMonthLabel(month: string): string {
   const [year, m] = month.split('-')
-  return new Date(parseInt(year), parseInt(m) - 1).toLocaleDateString('en-IN', {
-    month: 'short',
-    year: 'numeric',
-  })
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+  return `${months[parseInt(m) - 1]} ${year}`
 }
 
 export function pctBadgeClass(pct: number): string {
