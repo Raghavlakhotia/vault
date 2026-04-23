@@ -62,3 +62,11 @@ describe('currentMonth', () => {
     expect(currentMonth()).toMatch(/^\d{4}-\d{2}$/)
   })
 })
+
+describe('formatMonthLabel', () => {
+  it('formats YYYY-MM as a human-readable month label', () => {
+    const result = formatMonthLabel('2026-04')
+    expect(result).toMatch(/Apr/)
+    expect(result).toMatch(/2026/)
+  })
+})
