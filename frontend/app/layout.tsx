@@ -15,12 +15,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className={`${inter.className} bg-[#0f1117] min-h-screen`}>
-        <Suspense>
+        <Suspense fallback={<div className="h-[52px] bg-[#13161f] border-b border-white/[0.07]" />}>
           <Nav />
         </Suspense>
-        <Suspense>
-          {children}
-        </Suspense>
+        {children}
       </body>
     </html>
   )

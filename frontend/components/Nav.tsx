@@ -17,7 +17,7 @@ export default function Nav() {
   const month = searchParams.get('month') ?? currentMonth()
 
   function navigate(newMonth: string) {
-    router.push(`${pathname}?month=${newMonth}`)
+    router.replace(`${pathname}?month=${newMonth}`)
   }
 
   return (
@@ -40,6 +40,7 @@ export default function Nav() {
       </div>
       <div className="flex items-center gap-2">
         <button
+          aria-label="Previous month"
           onClick={() => navigate(prevMonth(month))}
           className="w-[26px] h-[26px] rounded-md bg-white/[0.06] border border-white/[0.08] text-[#9ca3af] text-sm flex items-center justify-center hover:bg-white/10"
         >
@@ -49,6 +50,7 @@ export default function Nav() {
           {formatMonthLabel(month)}
         </span>
         <button
+          aria-label="Next month"
           onClick={() => navigate(nextMonth(month))}
           className="w-[26px] h-[26px] rounded-md bg-white/[0.06] border border-white/[0.08] text-[#9ca3af] text-sm flex items-center justify-center hover:bg-white/10"
         >
