@@ -45,16 +45,22 @@ describe('api.createExpense', () => {
     mockFetch(created, 201)
     const result = await api.createExpense({ amount: 500, category: 'Groceries', paid_by: 'Husband' })
     expect(result).toEqual(created)
-    expect(global.fetch).toHaveBeenCalledWith(
-      'http://localhost:8000/api/expenses/',
-      expect.objectContaining({ method: 'POST' }),
-    )
+    const call = (global.fetch as jest.Mock).mock.calls[0]
+    expect(call[0]).toBe('http://localhost:8000/api/expenses/')
+    expect(call[1].method).toBe('POST')
+    expect(call[1].headers['Content-Type']).toBe('application/json')
+    expect(JSON.parse(call[1].body)).toEqual({ amount: 500, category: 'Groceries', paid_by: 'Husband' })
   })
 })
 
 describe('api.deleteExpense', () => {
   it('sends a DELETE to the correct URL', async () => {
-    ;(global.fetch as jest.Mock).mockResolvedValueOnce({ ok: true, status: 204 })
+    ;(global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      status: 204,
+      json: () => Promise.reject(new Error('no body')),
+      text: () => Promise.resolve(''),
+    })
     await api.deleteExpense(7)
     expect(global.fetch).toHaveBeenCalledWith(
       'http://localhost:8000/api/expenses/7',
@@ -79,6 +85,42 @@ describe('api.setBudgets', () => {
     expect(call[0]).toBe('http://localhost:8000/api/budgets/2026-04')
     expect(call[1].method).toBe('PUT')
     expect(JSON.parse(call[1].body)).toEqual({ entries: [{ category: 'Groceries', amount: 6000 }] })
+  })
+})
+
+describe('api.getBudgets', () => {
+  it('calls the correct endpoint', async () => {
+    mockFetch({ month: '2026-04', budgets: { Groceries: 6000 } })
+    const result = await api.getBudgets('2026-04')
+    expect(result).toEqual({ month: '2026-04', budgets: { Groceries: 6000 } })
+    expect(global.fetch).toHaveBeenCalledWith(
+      'http://localhost:8000/api/budgets/2026-04',
+      undefined,
+    )
+  })
+})
+
+describe('api.createCategory', () => {
+  it('sends a POST with name in body and returns updated list', async () => {
+    mockFetch(['Groceries', 'Dining Out'], 201)
+    const result = await api.createCategory('Dining Out')
+    expect(result).toEqual(['Groceries', 'Dining Out'])
+    const call = (global.fetch as jest.Mock).mock.calls[0]
+    expect(call[0]).toBe('http://localhost:8000/api/categories/')
+    expect(call[1].method).toBe('POST')
+    expect(JSON.parse(call[1].body)).toEqual({ name: 'Dining Out' })
+  })
+})
+
+describe('api.deleteCategory', () => {
+  it('sends a DELETE to the correct URL and returns updated list', async () => {
+    mockFetch(['Groceries'])
+    const result = await api.deleteCategory('Dining Out')
+    expect(result).toEqual(['Groceries'])
+    expect(global.fetch).toHaveBeenCalledWith(
+      'http://localhost:8000/api/categories/Dining Out',
+      expect.objectContaining({ method: 'DELETE' }),
+    )
   })
 })
 
