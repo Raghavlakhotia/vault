@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { api, BudgetEntry } from '@/lib/api'
 
 interface Props {
@@ -18,6 +18,12 @@ export default function BudgetEditor({ month, categories, budgets, onSave }: Pro
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState('')
+
+  useEffect(() => {
+    const init: Record<string, string> = {}
+    categories.forEach((c) => { init[c] = budgets[c]?.toString() ?? '' })
+    setValues(init)
+  }, [budgets, categories])
 
   async function handleSave() {
     setSaving(true)

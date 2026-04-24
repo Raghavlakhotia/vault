@@ -13,16 +13,18 @@ interface Props {
 export default function ExpenseTable({ expenses, onDelete }: Props) {
   const [filter, setFilter] = useState<Filter>('All')
   const [deletingId, setDeletingId] = useState<number | null>(null)
+  const [deleteError, setDeleteError] = useState('')
 
   const filtered = filter === 'All' ? expenses : expenses.filter((e) => e.paid_by === filter)
 
   async function handleDelete(id: number) {
     setDeletingId(id)
+    setDeleteError('')
     try {
       await api.deleteExpense(id)
       onDelete(id)
     } catch {
-      // deletion failed — row stays visible
+      setDeleteError('Failed to delete expense. Please try again.')
     } finally {
       setDeletingId(null)
     }
@@ -49,6 +51,7 @@ export default function ExpenseTable({ expenses, onDelete }: Props) {
         </span>
       </div>
 
+      {deleteError && <p className="text-red-400 text-[12px] mb-3">{deleteError}</p>}
       <div className="bg-[#1a1d27] border border-white/[0.07] rounded-xl overflow-hidden">
         {filtered.length === 0 ? (
           <div className="py-12 text-center text-[#6b7280] text-[13px]">No expenses found.</div>
@@ -100,7 +103,12 @@ export default function ExpenseTable({ expenses, onDelete }: Props) {
                       aria-label="Delete expense"
                       className="text-[#4b5563] hover:text-red-400 transition-colors disabled:opacity-50"
                     >
-                      🗑
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="3 6 5 6 21 6"/>
+                        <path d="M19 6l-1 14H6L5 6"/>
+                        <path d="M10 11v6M14 11v6"/>
+                        <path d="M9 6V4h6v2"/>
+                      </svg>
                     </button>
                   </td>
                 </tr>

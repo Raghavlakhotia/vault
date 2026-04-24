@@ -83,7 +83,7 @@ function DashboardInner() {
         <StatCard label="Total Spent" value={formatINR(data.totals.spent)} valueClass="text-red-400" />
         <StatCard
           label="Free Limit Left"
-          value={formatINR(data.totals.remaining)}
+          value={data.totals.remaining < 0 ? `−${formatINR(data.totals.remaining)}` : formatINR(data.totals.remaining)}
           valueClass={data.totals.remaining >= 0 ? 'text-green-400' : 'text-red-400'}
         />
       </div>
