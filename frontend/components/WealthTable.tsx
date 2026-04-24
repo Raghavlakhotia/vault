@@ -209,7 +209,7 @@ export default function WealthTable({ data, onDeleteHolding, onEditHolding }: Pr
     }
 
     return result
-  }, [rows, categoryFilter, holdingFilter, sortKey, sortDir])
+  }, [rows, categoryFilter, sortKey, sortDir])
 
   // Recompute totals from filtered rows
   const filteredTotals = useMemo(() => {
