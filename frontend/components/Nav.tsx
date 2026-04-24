@@ -13,6 +13,7 @@ const BUDGET_LINKS = [
 
 const WEALTH_LINKS = [
   { href: '/wealth', label: 'Dashboard' },
+  { href: '/wealth/overview', label: 'Overview' },
   { href: '/wealth/assets', label: 'Add Asset' },
   { href: '/wealth/holdings', label: 'Add Holding' },
 ]
