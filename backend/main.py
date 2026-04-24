@@ -8,7 +8,7 @@ from datetime import datetime
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from routers import categories, budgets, expenses, dashboard, assets, holdings, wealth
+from routers import categories, budgets, expenses, dashboard, assets, holdings, wealth, library
 
 app = FastAPI(
     title="Vault Budget API",
@@ -30,6 +30,7 @@ app.include_router(dashboard.router,  prefix="/api/dashboard",  tags=["Dashboard
 app.include_router(assets.router,     prefix="/api/assets",     tags=["Assets"])
 app.include_router(holdings.router,   prefix="/api/holdings",   tags=["Holdings"])
 app.include_router(wealth.router,     prefix="/api/wealth",     tags=["Wealth"])
+app.include_router(library.router,    prefix="/api/library",    tags=["Library"])
 
 
 @app.get("/", tags=["Meta"])
