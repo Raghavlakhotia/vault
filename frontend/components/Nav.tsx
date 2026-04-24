@@ -127,6 +127,17 @@ export default function Nav() {
             </div>
           )}
         </div>
+        {/* Library button — no dropdown */}
+        <Link
+          href="/library"
+          className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-md text-[13px] transition-colors ${
+            pathname.startsWith('/library')
+              ? 'text-violet-300 bg-violet-500/15 hover:bg-violet-500/25'
+              : 'text-[#6b7280] hover:text-[#9ca3af] hover:bg-white/[0.04]'
+          }`}
+        >
+          Library
+        </Link>
       </div>
 
       <div className="flex items-center gap-2">

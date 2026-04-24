@@ -79,6 +79,13 @@ export interface WealthTotals {
   weighted_realized_return: number | null
 }
 
+export interface BookMeta {
+  slug: string
+  title: string
+  author: string
+  order: number
+}
+
 export interface WealthDashboardResponse {
   month_year: string
   rows: WealthRow[]
@@ -167,4 +174,12 @@ export const api = {
 
   deleteHolding: (id: number) =>
     request<void>(`/api/holdings/${id}`, { method: 'DELETE' }),
+
+  listBooks: () => request<BookMeta[]>('/api/library/'),
+
+  getBook: async (slug: string): Promise<string> => {
+    const res = await fetch(`${BASE}/api/library/${slug}`)
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    return res.text()
+  },
 }
