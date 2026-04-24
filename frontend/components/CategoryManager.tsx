@@ -7,10 +7,49 @@ interface Props {
   onChange: (cats: string[]) => void
 }
 
+function ConfirmDialog({ name, onConfirm, onCancel }: { name: string; onConfirm: () => void; onCancel: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+      <div className="bg-[#1a1d27] border border-white/[0.1] rounded-2xl shadow-2xl w-full max-w-sm mx-4 p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-9 h-9 rounded-full bg-red-500/15 flex items-center justify-center flex-shrink-0">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="3 6 5 6 21 6"/>
+              <path d="M19 6l-1 14H6L5 6"/>
+              <path d="M10 11v6M14 11v6"/>
+              <path d="M9 6V4h6v2"/>
+            </svg>
+          </div>
+          <h2 className="text-[#e4e6f0] font-semibold text-[15px]">Delete category?</h2>
+        </div>
+        <p className="text-[#9ca3af] text-[13px] leading-relaxed mb-6">
+          Are you sure you want to delete <span className="text-[#e4e6f0] font-medium">"{name}"</span>?
+          All expenses under this category will also be permanently deleted.
+        </p>
+        <div className="flex gap-3 justify-end">
+          <button
+            onClick={onCancel}
+            className="px-4 py-2 rounded-lg text-[13px] font-medium text-[#9ca3af] bg-white/[0.06] hover:bg-white/[0.1] transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            className="px-4 py-2 rounded-lg text-[13px] font-medium text-white bg-red-500/80 hover:bg-red-500 transition-colors"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function CategoryManager({ categories, onChange }: Props) {
   const [input, setInput] = useState('')
   const [adding, setAdding] = useState(false)
   const [deletingName, setDeletingName] = useState<string | null>(null)
+  const [confirmName, setConfirmName] = useState<string | null>(null)
   const [error, setError] = useState('')
 
   async function handleAdd(e: React.FormEvent) {
@@ -31,6 +70,7 @@ export default function CategoryManager({ categories, onChange }: Props) {
   }
 
   async function handleDelete(name: string) {
+    setConfirmName(null)
     setDeletingName(name)
     setError('')
     try {
@@ -45,6 +85,14 @@ export default function CategoryManager({ categories, onChange }: Props) {
 
   return (
     <div>
+      {confirmName && (
+        <ConfirmDialog
+          name={confirmName}
+          onConfirm={() => handleDelete(confirmName)}
+          onCancel={() => setConfirmName(null)}
+        />
+      )}
+
       <form onSubmit={handleAdd} className="flex gap-3 mb-6">
         <input
           type="text"
@@ -77,7 +125,7 @@ export default function CategoryManager({ categories, onChange }: Props) {
             >
               <span className="text-[#e4e6f0] font-medium text-[13px]">{cat}</span>
               <button
-                onClick={() => handleDelete(cat)}
+                onClick={() => setConfirmName(cat)}
                 disabled={deletingName === cat}
                 aria-label={`Delete ${cat}`}
                 className="text-[#4b5563] hover:text-red-400 transition-colors disabled:opacity-50"
