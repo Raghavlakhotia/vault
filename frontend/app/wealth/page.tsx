@@ -2,8 +2,9 @@
 import { Suspense, useCallback, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { api, WealthDashboardResponse } from '@/lib/api'
-import { currentMonth } from '@/lib/utils'
+import { currentMonth, formatINR } from '@/lib/utils'
 import WealthTable from '@/components/WealthTable'
+import StatCard from '@/components/StatCard'
 
 function WealthInner() {
   const searchParams = useSearchParams()
@@ -41,12 +42,43 @@ function WealthInner() {
   if (error) return <div className="flex items-center justify-center h-64 text-red-400 text-[13px]">{error}</div>
   if (!data) return null
 
+  const { totals, rows } = data
+  const pctReturn = totals.total_invested > 0
+    ? ((totals.total_market - totals.total_invested) / totals.total_invested) * 100
+    : null
+  const equityInvested = rows.filter((r) => r.category === 'Equity').reduce((s, r) => s + r.invested_value, 0)
+  const equityPct = totals.total_invested > 0 ? (equityInvested / totals.total_invested) * 100 : null
+
   return (
     <div className="px-8 py-6 max-w-6xl mx-auto">
       <h1 className="text-[#e4e6f0] text-[17px] font-semibold mb-5">
         Wealth Dashboard
         <span className="ml-3 text-[13px] font-normal text-[#6b7280]">{month}</span>
       </h1>
+
+      <div className="grid grid-cols-4 gap-4 mb-6">
+        <StatCard
+          label="Net Invested"
+          value={formatINR(totals.total_invested)}
+          valueClass="text-[#e4e6f0]"
+        />
+        <StatCard
+          label="Net Worth"
+          value={formatINR(totals.total_market)}
+          valueClass="text-indigo-400"
+        />
+        <StatCard
+          label="% Return"
+          value={pctReturn !== null ? `${pctReturn >= 0 ? '+' : ''}${pctReturn.toFixed(1)}%` : '—'}
+          valueClass={pctReturn === null ? 'text-[#6b7280]' : pctReturn >= 0 ? 'text-green-400' : 'text-red-400'}
+        />
+        <StatCard
+          label="Equity %"
+          value={equityPct !== null ? `${equityPct.toFixed(1)}%` : '—'}
+          valueClass={equityPct === null ? 'text-[#6b7280]' : 'text-amber-400'}
+        />
+      </div>
+
       <WealthTable
         data={data}
         onDeleteHolding={handleDeleteHolding}
