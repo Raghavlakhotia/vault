@@ -119,6 +119,16 @@ export const api = {
   deleteExpense: (id: number) =>
     request<void>(`/api/expenses/${id}`, { method: 'DELETE' }),
 
+  getDefaultBudget: () =>
+    request<BudgetResponse>('/api/budgets/default'),
+
+  setDefaultBudget: (entries: BudgetEntry[]) =>
+    request<BudgetResponse>('/api/budgets/default', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ entries }),
+    }),
+
   getBudgets: (month: string) =>
     request<BudgetResponse>(`/api/budgets/${month}`),
 

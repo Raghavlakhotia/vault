@@ -7,9 +7,10 @@ import { currentMonth, prevMonth, nextMonth, formatMonthLabel } from '@/lib/util
 const BUDGET_LINKS = [
   { href: '/', label: 'Dashboard' },
   { href: '/overview', label: 'Overview' },
+  { href: '/budgets/default', label: 'Default Budget' },
+  { href: '/budgets', label: 'Budget Allocation' },
   { href: '/expenses', label: 'Expenses' },
   { href: '/categories', label: 'Add Category' },
-  { href: '/budgets', label: 'Budget Allocation' },
 ]
 
 const WEALTH_LINKS = [
@@ -48,7 +49,7 @@ export default function Nav() {
   const isWealthSection = pathname.startsWith('/wealth')
   const budgetActiveLabel = BUDGET_LINKS.find((l) => l.href === pathname)?.label ?? 'Budget'
   const wealthActiveLabel = WEALTH_LINKS.find((l) => l.href === pathname)?.label ?? 'Wealth'
-  const hideMonthSwitcher = pathname === '/categories' || pathname === '/overview'
+  const hideMonthSwitcher = pathname === '/categories' || pathname === '/overview' || pathname === '/budgets/default'
 
   return (
     <nav className="bg-[#13161f] border-b border-white/[0.07] px-6 flex items-center h-[52px]">
