@@ -20,8 +20,9 @@ def build_dashboard(month: str) -> DashboardResponse:
     budgets = get_budgets()
     expenses = get_expenses()
 
-    curr_budget = budgets.get(month, {})
-    prev_budget = budgets.get(prev, {})
+    defaults    = budgets.get("default", {})
+    curr_budget = {**defaults, **budgets.get(month, {})}
+    prev_budget = {**defaults, **budgets.get(prev, {})}
 
     prev_spent: dict[str, float] = {}
     curr_spent: dict[str, float] = {}

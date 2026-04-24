@@ -22,6 +22,28 @@ def list_all_budgets():
     return get_budgets()
 
 
+@router.get("/default", response_model=BudgetResponse)
+def get_default_budget():
+    """Return the default budget applied to all months unless overridden."""
+    return BudgetResponse(month="default", budgets=get_budgets().get("default", {}))
+
+
+@router.put("/default", response_model=BudgetResponse)
+def set_default_budget(body: BudgetBatch):
+    """Replace the default budget (applies to every month that has no specific override)."""
+    cats = get_categories()
+    unknown = [e.category for e in body.entries if e.category not in cats]
+    if unknown:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Unknown categories: {unknown}. Create them first.",
+        )
+    budgets = get_budgets()
+    budgets["default"] = {e.category: e.amount for e in body.entries}
+    save_budgets(budgets)
+    return BudgetResponse(month="default", budgets=budgets["default"])
+
+
 @router.get("/{month}", response_model=BudgetResponse)
 def get_month_budget(month: str):
     _validate_month(month)
