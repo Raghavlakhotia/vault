@@ -3,6 +3,7 @@
 from datetime import date
 from typing import Optional
 from pydantic import BaseModel, Field, field_validator
+import re
 
 
 # ── Categories ─────────────────────────────────────────────────────────────────
@@ -72,3 +73,55 @@ class DashboardResponse(BaseModel):
     matrix: list[DashboardRow]
     totals: DashboardRow
     expenses: list[ExpenseOut]
+
+
+# ── Wealth ─────────────────────────────────────────────────────────────────────
+
+class AssetCreate(BaseModel):
+    asset_name: str = Field(min_length=1, max_length=128)
+    category: str = Field(pattern="^(Equity|Debt)$")
+    expected_return: float = Field(ge=0)
+
+class AssetOut(BaseModel):
+    asset_id: int
+    asset_name: str
+    category: str
+    expected_return: float
+
+class HoldingCreate(BaseModel):
+    asset_id: int
+    month_year: str
+    invested_value: float = Field(ge=0)
+    market_value: float = Field(ge=0)
+
+class HoldingUpdate(BaseModel):
+    invested_value: float = Field(ge=0)
+    market_value: float = Field(ge=0)
+
+class HoldingOut(BaseModel):
+    id: int
+    asset_id: int
+    month_year: str
+    invested_value: float
+    market_value: float
+
+class WealthRow(BaseModel):
+    asset_id: int
+    asset_name: str
+    category: str
+    expected_return: float
+    holding_id: Optional[int]
+    invested_value: float
+    market_value: float
+    returns: Optional[float]
+
+class WealthTotals(BaseModel):
+    weighted_expected_return: Optional[float]
+    total_invested: float
+    total_market: float
+    weighted_realized_return: Optional[float]
+
+class WealthDashboardResponse(BaseModel):
+    month_year: str
+    rows: list[WealthRow]
+    totals: WealthTotals
