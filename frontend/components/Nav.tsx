@@ -6,6 +6,7 @@ import { currentMonth, prevMonth, nextMonth, formatMonthLabel } from '@/lib/util
 
 const BUDGET_LINKS = [
   { href: '/', label: 'Dashboard' },
+  { href: '/overview', label: 'Overview' },
   { href: '/expenses', label: 'Expenses' },
   { href: '/categories', label: 'Categories' },
   { href: '/budgets', label: 'Budget Allocation' },
