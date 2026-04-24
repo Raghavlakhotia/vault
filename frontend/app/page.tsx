@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useCallback } from 'react'
+import { Suspense, useState, useEffect, useCallback } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { api, DashboardResponse } from '@/lib/api'
 import { formatINR, currentMonth } from '@/lib/utils'
@@ -45,7 +45,7 @@ function GlanceSummary({ matrix }: { matrix: DashboardResponse['matrix'] }) {
   )
 }
 
-export default function DashboardPage() {
+function DashboardInner() {
   const searchParams = useSearchParams()
   const month = searchParams.get('month') ?? currentMonth()
   const [data, setData] = useState<DashboardResponse | null>(null)
@@ -99,5 +99,13 @@ export default function DashboardPage() {
 
       <AddExpenseDrawer isOpen={drawerOpen} onClose={() => setDrawerOpen(false)} onSuccess={fetchData} />
     </main>
+  )
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center h-64 text-[#6b7280] text-[13px]">Loading...</div>}>
+      <DashboardInner />
+    </Suspense>
   )
 }

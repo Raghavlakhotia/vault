@@ -1,11 +1,11 @@
 'use client'
-import { useState, useEffect, useCallback } from 'react'
+import { Suspense, useState, useEffect, useCallback } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { api } from '@/lib/api'
 import { currentMonth } from '@/lib/utils'
 import BudgetEditor from '@/components/BudgetEditor'
 
-export default function BudgetsPage() {
+function BudgetsInner() {
   const searchParams = useSearchParams()
   const month = searchParams.get('month') ?? currentMonth()
   const [categories, setCategories] = useState<string[]>([])
@@ -44,5 +44,13 @@ export default function BudgetsPage() {
         <BudgetEditor month={month} categories={categories} budgets={budgets} onSave={fetchData} />
       )}
     </main>
+  )
+}
+
+export default function BudgetsPage() {
+  return (
+    <Suspense fallback={<div className="text-[#6b7280] text-center py-12 text-[13px]">Loading...</div>}>
+      <BudgetsInner />
+    </Suspense>
   )
 }

@@ -1,12 +1,12 @@
 'use client'
-import { useState, useEffect, useCallback } from 'react'
+import { Suspense, useState, useEffect, useCallback } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { api, ExpenseOut } from '@/lib/api'
 import { currentMonth } from '@/lib/utils'
 import ExpenseTable from '@/components/ExpenseTable'
 import AddExpenseDrawer from '@/components/AddExpenseDrawer'
 
-export default function ExpensesPage() {
+function ExpensesInner() {
   const searchParams = useSearchParams()
   const month = searchParams.get('month') ?? currentMonth()
   const [expenses, setExpenses] = useState<ExpenseOut[]>([])
@@ -52,5 +52,13 @@ export default function ExpensesPage() {
 
       <AddExpenseDrawer isOpen={drawerOpen} onClose={() => setDrawerOpen(false)} onSuccess={fetchData} />
     </main>
+  )
+}
+
+export default function ExpensesPage() {
+  return (
+    <Suspense fallback={<div className="text-[#6b7280] text-center py-12 text-[13px]">Loading...</div>}>
+      <ExpensesInner />
+    </Suspense>
   )
 }
