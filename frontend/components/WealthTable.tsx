@@ -12,7 +12,6 @@ interface Props {
 type SortKey = 'asset_name' | 'expected_return' | 'invested_value' | 'market_value' | 'returns'
 type SortDir = 'asc' | 'desc'
 type CategoryFilter = 'All' | 'Equity' | 'Debt'
-type HoldingFilter = 'All' | 'Has Holding' | 'No Holding'
 
 function returnColor(ret: number, expected: number) {
   if (ret < 0) return 'text-red-400'
@@ -39,27 +38,23 @@ function SortIcon({ active, dir }: { active: boolean; dir: SortDir }) {
   )
 }
 
-function ToggleGroup<T extends string>({ options, value, onChange }: {
-  options: T[]
-  value: T
-  onChange: (v: T) => void
-}) {
+const CATEGORY_PILL_STYLES: Record<CategoryFilter, { dot: string; active: string; inactive: string }> = {
+  All:    { dot: 'bg-white/40',   active: 'bg-white/[0.08] text-[#e4e6f0] border-white/20',         inactive: 'text-[#6b7280] border-white/[0.07] hover:border-white/[0.14] hover:text-[#9ca3af]' },
+  Equity: { dot: 'bg-indigo-400', active: 'bg-indigo-500/15 text-indigo-300 border-indigo-500/40',   inactive: 'text-[#6b7280] border-white/[0.07] hover:border-indigo-500/25 hover:text-indigo-400' },
+  Debt:   { dot: 'bg-amber-400',  active: 'bg-amber-500/15 text-amber-300 border-amber-500/40',     inactive: 'text-[#6b7280] border-white/[0.07] hover:border-amber-500/25 hover:text-amber-400'   },
+}
+
+function CategoryPill({ cat, active, count, onClick }: { cat: CategoryFilter; active: boolean; count: number; onClick: () => void }) {
+  const s = CATEGORY_PILL_STYLES[cat]
   return (
-    <div className="flex bg-[#0f1117] rounded-lg border border-white/[0.07] p-0.5 gap-0.5">
-      {options.map((opt) => (
-        <button
-          key={opt}
-          onClick={() => onChange(opt)}
-          className={`px-3 py-1 rounded-md text-[12px] transition-colors ${
-            value === opt
-              ? 'bg-white/[0.08] text-[#e4e6f0]'
-              : 'text-[#6b7280] hover:text-[#9ca3af]'
-          }`}
-        >
-          {opt}
-        </button>
-      ))}
-    </div>
+    <button
+      onClick={onClick}
+      className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg border text-[12px] font-medium transition-all ${active ? s.active : s.inactive}`}
+    >
+      <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${s.dot}`} />
+      {cat}
+      <span className={`tabular-nums text-[11px] ${active ? 'opacity-60' : 'opacity-35'}`}>{count}</span>
+    </button>
   )
 }
 
@@ -183,7 +178,6 @@ export default function WealthTable({ data, onDeleteHolding, onEditHolding }: Pr
   const { rows, totals } = data
 
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('All')
-  const [holdingFilter, setHoldingFilter] = useState<HoldingFilter>('All')
   const [sortKey, setSortKey] = useState<SortKey | null>(null)
   const [sortDir, setSortDir] = useState<SortDir>('desc')
 
@@ -200,8 +194,6 @@ export default function WealthTable({ data, onDeleteHolding, onEditHolding }: Pr
     let result = [...rows]
 
     if (categoryFilter !== 'All') result = result.filter((r) => r.category === categoryFilter)
-    if (holdingFilter === 'Has Holding') result = result.filter((r) => r.holding_id !== null)
-    if (holdingFilter === 'No Holding') result = result.filter((r) => r.holding_id === null)
 
     if (sortKey) {
       result.sort((a, b) => {
@@ -245,30 +237,23 @@ export default function WealthTable({ data, onDeleteHolding, onEditHolding }: Pr
     )
   }
 
-  const isFiltered = categoryFilter !== 'All' || holdingFilter !== 'All'
+  const isFiltered = categoryFilter !== 'All'
 
   return (
     <div className="space-y-3">
       {/* Filter / sort controls */}
-      <div className="flex items-center gap-3 flex-wrap">
-        <div className="flex items-center gap-2">
-          <span className="text-[11px] text-[#6b7280] uppercase tracking-wide">Category</span>
-          <ToggleGroup options={['All', 'Equity', 'Debt'] as CategoryFilter[]} value={categoryFilter} onChange={setCategoryFilter} />
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-[11px] text-[#6b7280] uppercase tracking-wide">Holdings</span>
-          <ToggleGroup options={['All', 'Has Holding', 'No Holding'] as HoldingFilter[]} value={holdingFilter} onChange={setHoldingFilter} />
-        </div>
-        {isFiltered && (
-          <button
-            onClick={() => { setCategoryFilter('All'); setHoldingFilter('All') }}
-            className="text-[12px] text-[#6b7280] hover:text-[#9ca3af] transition-colors"
-          >
-            Clear filters
-          </button>
-        )}
-        <span className="ml-auto text-[11px] text-[#6b7280]">
-          {filteredRows.length} of {rows.length} assets
+      <div className="flex items-center gap-2 flex-wrap">
+        {(['All', 'Equity', 'Debt'] as CategoryFilter[]).map((cat) => (
+          <CategoryPill
+            key={cat}
+            cat={cat}
+            active={categoryFilter === cat}
+            count={cat === 'All' ? rows.length : rows.filter((r) => r.category === cat).length}
+            onClick={() => setCategoryFilter(cat)}
+          />
+        ))}
+        <span className="ml-auto text-[11px] text-[#6b7280] tabular-nums">
+          {isFiltered ? `${filteredRows.length} of ${rows.length}` : rows.length} assets
         </span>
       </div>
 

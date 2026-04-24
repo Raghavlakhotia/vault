@@ -21,8 +21,28 @@ function returnColor(ret: number, expected: number): string {
   return 'text-amber-400'
 }
 
+function RatioBadge({ label, value, months }: { label: string; value: number | null; months: number }) {
+  const displayVal = value !== null ? value.toFixed(2) : '—'
+  const colorClass = value === null
+    ? 'text-[#6b7280]'
+    : value >= 1 ? 'text-green-400'
+    : value >= 0 ? 'text-amber-400'
+    : 'text-red-400'
+  const monthsSuffix = months >= 3 ? ` (${months}m)` : ''
+
+  return (
+    <div className="flex items-center gap-3 bg-[#1a1d27] border border-white/[0.07] rounded-xl px-4 py-3 min-w-[130px]">
+      <div>
+        <div className="text-[10px] text-[#6b7280] uppercase tracking-widest mb-1">{label}{monthsSuffix}</div>
+        <div className={`text-[18px] font-semibold tracking-tight ${colorClass}`}>{displayVal}</div>
+      </div>
+    </div>
+  )
+}
+
 export default function WealthOverviewPage() {
   const [monthData, setMonthData] = useState<Record<string, WealthDashboardResponse>>({})
+  const [ratios, setRatios] = useState<{ sharpe: number | null; sortino: number | null; months: number } | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -31,9 +51,13 @@ export default function WealthOverviewPage() {
       setLoading(true)
       setError('')
       try {
-        const results = await Promise.all(FY_MONTHS.map((m) => api.getWealthDashboard(m)))
+        const [ratiosData, ...results] = await Promise.all([
+          api.getWealthRatios(),
+          ...FY_MONTHS.map((m) => api.getWealthDashboard(m)),
+        ])
+        setRatios(ratiosData)
         const map: Record<string, WealthDashboardResponse> = {}
-        FY_MONTHS.forEach((m, i) => { map[m] = results[i] })
+        FY_MONTHS.forEach((m, i) => { map[m] = results[i] as WealthDashboardResponse })
         setMonthData(map)
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Failed to load overview')
@@ -66,10 +90,16 @@ export default function WealthOverviewPage() {
 
   return (
     <div className="px-8 py-6 max-w-screen-xl mx-auto">
-      <h1 className="text-[#e4e6f0] text-[17px] font-semibold mb-5">
-        Wealth Overview
-        <span className="ml-3 text-[13px] font-normal text-[#6b7280]">FY 2026–27</span>
-      </h1>
+      <div className="flex items-start justify-between mb-5">
+        <h1 className="text-[#e4e6f0] text-[17px] font-semibold">
+          Wealth Overview
+          <span className="ml-3 text-[13px] font-normal text-[#6b7280]">FY 2026–27</span>
+        </h1>
+        <div className="flex gap-3">
+          <RatioBadge label="Sharpe" value={ratios?.sharpe ?? null} months={ratios?.months ?? 0} />
+          <RatioBadge label="Sortino" value={ratios?.sortino ?? null} months={ratios?.months ?? 0} />
+        </div>
+      </div>
 
       <div className="rounded-xl border border-white/[0.07] overflow-x-auto">
         <table className="text-[13px]" style={{ minWidth: `${200 + FY_MONTHS.length * 140}px`, width: '100%' }}>

@@ -11,7 +11,6 @@ function WealthInner() {
   const month = searchParams.get('month') ?? currentMonth()
 
   const [data, setData] = useState<WealthDashboardResponse | null>(null)
-  const [ratios, setRatios] = useState<{ sharpe: number | null; sortino: number | null; months: number } | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -19,12 +18,7 @@ function WealthInner() {
     setLoading(true)
     setError('')
     try {
-      const [dashboard, ratiosData] = await Promise.all([
-        api.getWealthDashboard(month),
-        api.getWealthRatios(),
-      ])
-      setData(dashboard)
-      setRatios(ratiosData)
+      setData(await api.getWealthDashboard(month))
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to load wealth data')
     } finally {
@@ -62,7 +56,7 @@ function WealthInner() {
         <span className="ml-3 text-[13px] font-normal text-[#6b7280]">{month}</span>
       </h1>
 
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-4 gap-4 mb-6">
         <StatCard
           label="Net Invested"
           value={formatINR(totals.total_invested)}
@@ -82,26 +76,6 @@ function WealthInner() {
           label="Equity %"
           value={equityPct !== null ? `${equityPct.toFixed(1)}%` : '—'}
           valueClass={equityPct === null ? 'text-[#6b7280]' : 'text-amber-400'}
-        />
-        <StatCard
-          label={`Sharpe Ratio${ratios && ratios.months >= 3 ? ` (${ratios.months}m)` : ''}`}
-          value={ratios?.sharpe !== null && ratios?.sharpe !== undefined ? ratios.sharpe.toFixed(2) : '—'}
-          valueClass={
-            ratios?.sharpe == null ? 'text-[#6b7280]'
-            : ratios.sharpe >= 1 ? 'text-green-400'
-            : ratios.sharpe >= 0 ? 'text-amber-400'
-            : 'text-red-400'
-          }
-        />
-        <StatCard
-          label={`Sortino Ratio${ratios && ratios.months >= 3 ? ` (${ratios.months}m)` : ''}`}
-          value={ratios?.sortino !== null && ratios?.sortino !== undefined ? ratios.sortino.toFixed(2) : '—'}
-          valueClass={
-            ratios?.sortino == null ? 'text-[#6b7280]'
-            : ratios.sortino >= 1 ? 'text-green-400'
-            : ratios.sortino >= 0 ? 'text-amber-400'
-            : 'text-red-400'
-          }
         />
       </div>
 
