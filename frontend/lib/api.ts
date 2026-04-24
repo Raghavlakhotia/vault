@@ -44,6 +44,45 @@ export interface BudgetResponse {
   budgets: Record<string, number>
 }
 
+export interface AssetOut {
+  asset_id: number
+  asset_name: string
+  category: 'Equity' | 'Debt'
+  expected_return: number
+}
+
+export interface HoldingOut {
+  id: number
+  asset_id: number
+  month_year: string
+  invested_value: number
+  market_value: number
+}
+
+export interface WealthRow {
+  asset_id: number
+  asset_name: string
+  category: 'Equity' | 'Debt'
+  expected_return: number
+  holding_id: number | null
+  invested_value: number
+  market_value: number
+  returns: number | null
+}
+
+export interface WealthTotals {
+  weighted_expected_return: number | null
+  total_invested: number
+  total_market: number
+  weighted_realized_return: number | null
+}
+
+export interface WealthDashboardResponse {
+  month_year: string
+  rows: WealthRow[]
+  totals: WealthTotals
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE}${path}`, init)
   if (!res.ok) {
@@ -93,4 +132,37 @@ export const api = {
 
   deleteCategory: (name: string) =>
     request<string[]>(`/api/categories/${name}`, { method: 'DELETE' }),
+
+  getAssets: () =>
+    request<AssetOut[]>('/api/assets/'),
+
+  createAsset: (body: { asset_name: string; category: string; expected_return: number }) =>
+    request<AssetOut>('/api/assets/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    }),
+
+  deleteAsset: (asset_id: number) =>
+    request<void>(`/api/assets/${asset_id}`, { method: 'DELETE' }),
+
+  getWealthDashboard: (month: string) =>
+    request<WealthDashboardResponse>(`/api/wealth/${month}`),
+
+  createHolding: (body: { asset_id: number; month_year: string; invested_value: number; market_value: number }) =>
+    request<HoldingOut>('/api/holdings/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    }),
+
+  updateHolding: (id: number, body: { invested_value: number; market_value: number }) =>
+    request<HoldingOut>(`/api/holdings/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    }),
+
+  deleteHolding: (id: number) =>
+    request<void>(`/api/holdings/${id}`, { method: 'DELETE' }),
 }
