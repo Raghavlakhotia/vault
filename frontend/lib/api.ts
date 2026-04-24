@@ -158,6 +158,9 @@ export const api = {
   getWealthDashboard: (month: string) =>
     request<WealthDashboardResponse>(`/api/wealth/${month}`),
 
+  getWealthRatios: () =>
+    request<{ sharpe: number | null; sortino: number | null; months: number; risk_free: number }>('/api/wealth/ratios'),
+
   createHolding: (body: { asset_id: number; month_year: string; invested_value: number; market_value: number; use_expected_return?: boolean }) =>
     request<HoldingOut>('/api/holdings/', {
       method: 'POST',
