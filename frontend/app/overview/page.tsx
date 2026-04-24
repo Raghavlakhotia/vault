@@ -84,14 +84,15 @@ export default function BudgetOverviewPage() {
                   </td>
                   {FY_MONTHS.map((m) => {
                     const row = monthData[m]?.matrix.find((r) => r.category === cat)
-                    if (!row || row.spent === 0) {
-                      return <td key={m} className="px-4 py-3 text-right text-[#3d4151]">—</td>
+                    const spent = row?.spent ?? 0
+                    if (spent === 0) {
+                      return <td key={m} className="px-4 py-3 text-right text-[#3d4151]">₹0</td>
                     }
-                    const overBudget = row.cumulative > 0 && row.spent > row.cumulative
+                    const overBudget = row!.cumulative > 0 && spent > row!.cumulative
                     return (
                       <td key={m} className="px-4 py-3 text-right">
                         <span className={overBudget ? 'text-red-400' : 'text-[#e4e6f0]'}>
-                          {formatINR(row.spent)}
+                          {formatINR(spent)}
                         </span>
                       </td>
                     )

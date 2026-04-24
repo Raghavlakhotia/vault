@@ -48,6 +48,7 @@ export default function Nav() {
   const isWealthSection = pathname.startsWith('/wealth')
   const budgetActiveLabel = BUDGET_LINKS.find((l) => l.href === pathname)?.label ?? 'Budget'
   const wealthActiveLabel = WEALTH_LINKS.find((l) => l.href === pathname)?.label ?? 'Wealth'
+  const hideMonthSwitcher = pathname === '/categories' || pathname === '/overview'
 
   return (
     <nav className="bg-[#13161f] border-b border-white/[0.07] px-6 flex items-center h-[52px]">
@@ -142,25 +143,27 @@ export default function Nav() {
         </Link>
       </div>
 
-      <div className="flex items-center gap-2">
-        <button
-          aria-label="Previous month"
-          onClick={() => navigate(prevMonth(month))}
-          className="w-[26px] h-[26px] rounded-md bg-white/[0.06] border border-white/[0.08] text-[#9ca3af] text-sm flex items-center justify-center hover:bg-white/10"
-        >
-          ‹
-        </button>
-        <span className="text-[#e4e6f0] font-medium text-[13px] min-w-[80px] text-center">
-          {formatMonthLabel(month)}
-        </span>
-        <button
-          aria-label="Next month"
-          onClick={() => navigate(nextMonth(month))}
-          className="w-[26px] h-[26px] rounded-md bg-white/[0.06] border border-white/[0.08] text-[#9ca3af] text-sm flex items-center justify-center hover:bg-white/10"
-        >
-          ›
-        </button>
-      </div>
+      {!hideMonthSwitcher && (
+        <div className="flex items-center gap-2">
+          <button
+            aria-label="Previous month"
+            onClick={() => navigate(prevMonth(month))}
+            className="w-[26px] h-[26px] rounded-md bg-white/[0.06] border border-white/[0.08] text-[#9ca3af] text-sm flex items-center justify-center hover:bg-white/10"
+          >
+            ‹
+          </button>
+          <span className="text-[#e4e6f0] font-medium text-[13px] min-w-[80px] text-center">
+            {formatMonthLabel(month)}
+          </span>
+          <button
+            aria-label="Next month"
+            onClick={() => navigate(nextMonth(month))}
+            className="w-[26px] h-[26px] rounded-md bg-white/[0.06] border border-white/[0.08] text-[#9ca3af] text-sm flex items-center justify-center hover:bg-white/10"
+          >
+            ›
+          </button>
+        </div>
+      )}
     </nav>
   )
 }
