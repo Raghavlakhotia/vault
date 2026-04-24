@@ -19,7 +19,9 @@ interface Props {
 }
 
 export default function ExpenseFeed({ expenses, month, onAddExpense }: Props) {
-  const recent = expenses.slice(0, 5)
+  const recent = [...expenses]
+    .sort((a, b) => b.date.localeCompare(a.date))
+    .slice(0, 5)
 
   return (
     <div className="bg-[#1a1d27] border border-white/[0.07] rounded-xl p-4 flex flex-col">

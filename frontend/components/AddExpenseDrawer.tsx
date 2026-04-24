@@ -42,12 +42,14 @@ export default function AddExpenseDrawer({ isOpen, onClose, onSuccess }: Props) 
     }
   }
 
-  if (!isOpen) return null
-
   return (
     <>
-      <div className="fixed inset-0 bg-black/50 z-40" onClick={onClose} />
-      <div className="fixed right-0 top-0 h-full w-96 bg-[#13161f] border-l border-white/[0.07] z-50 flex flex-col shadow-2xl">
+      {isOpen && <div className="fixed inset-0 bg-black/50 z-40" onClick={onClose} />}
+      <div
+        className={`fixed right-0 top-0 h-full w-96 bg-[#13161f] border-l border-white/[0.07] z-50 flex flex-col shadow-2xl transform transition-transform duration-300 ease-in-out ${
+          isOpen ? 'translate-x-0' : 'translate-x-full'
+        }`}
+      >
         <div className="flex justify-between items-center p-5 border-b border-white/[0.07]">
           <h2 className="text-[#e4e6f0] font-semibold text-[15px]">Add Expense</h2>
           <button onClick={onClose} className="text-[#6b7280] hover:text-[#9ca3af] text-2xl leading-none" aria-label="Close drawer">×</button>
