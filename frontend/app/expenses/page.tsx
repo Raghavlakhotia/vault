@@ -30,7 +30,7 @@ function ExpensesInner() {
   useEffect(() => { fetchData() }, [fetchData])
 
   return (
-    <main className="p-6 max-w-[1280px] mx-auto">
+    <main className="p-4 md:p-6 max-w-[1280px] mx-auto">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-[#e4e6f0] font-semibold text-[18px]">Expenses</h1>
         <button

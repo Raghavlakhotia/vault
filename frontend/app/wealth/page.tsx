@@ -50,13 +50,13 @@ function WealthInner() {
   const equityPct = totals.total_invested > 0 ? (equityInvested / totals.total_invested) * 100 : null
 
   return (
-    <div className="px-8 py-6 max-w-6xl mx-auto">
+    <div className="px-4 py-4 md:px-8 md:py-6 max-w-6xl mx-auto">
       <h1 className="text-[#e4e6f0] text-[17px] font-semibold mb-5">
         Wealth Dashboard
         <span className="ml-3 text-[13px] font-normal text-[#6b7280]">{month}</span>
       </h1>
 
-      <div className="grid grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <StatCard
           label="Net Invested"
           value={formatINR(totals.total_invested)}

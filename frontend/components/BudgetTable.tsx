@@ -16,7 +16,9 @@ export default function BudgetTable({ matrix, totals }: Props) {
   const monthlyLeft = totals.monthly_budget - totals.spent
 
   return (
-    <div className="bg-[#1a1d27] border border-white/[0.07] rounded-xl overflow-hidden">
+    <div className="overflow-x-auto rounded-xl border border-white/[0.07]">
+    <div className="min-w-[700px]">
+    <div className="bg-[#1a1d27] overflow-hidden">
       <table className="w-full border-collapse text-[13px]">
         <thead>
           <tr className="bg-[#13161f] border-b border-white/[0.07]">
@@ -64,6 +66,8 @@ export default function BudgetTable({ matrix, totals }: Props) {
           </tr>
         </tbody>
       </table>
+    </div>
+    </div>
     </div>
   )
 }

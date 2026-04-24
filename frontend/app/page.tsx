@@ -76,8 +76,8 @@ function DashboardInner() {
   if (!data) return null
 
   return (
-    <main className="p-6 max-w-[1280px] mx-auto">
-      <div className="grid grid-cols-4 gap-3 mb-6">
+    <main className="p-4 md:p-6 max-w-[1280px] mx-auto">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
         <StatCard label="Monthly Budget" value={formatINR(data.totals.monthly_budget)} />
         <StatCard label="Cumulative Budget" value={formatINR(data.totals.cumulative)} valueClass="text-indigo-400" />
         <StatCard label="Total Spent" value={formatINR(data.totals.spent)} valueClass="text-red-400" />
@@ -92,7 +92,7 @@ function DashboardInner() {
         <BudgetTable matrix={data.matrix} totals={data.totals} />
       </div>
 
-      <div className="grid grid-cols-[1fr_380px] gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-5">
         <GlanceSummary matrix={data.matrix} />
         <ExpenseFeed expenses={data.expenses} month={month} onAddExpense={() => setDrawerOpen(true)} />
       </div>

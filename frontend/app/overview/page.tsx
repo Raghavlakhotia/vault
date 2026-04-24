@@ -49,7 +49,7 @@ export default function BudgetOverviewPage() {
   const categories = Array.from(categorySet)
 
   return (
-    <div className="px-8 py-6 max-w-screen-xl mx-auto">
+    <div className="px-4 py-4 md:px-8 md:py-6 max-w-screen-xl mx-auto">
       <h1 className="text-[#e4e6f0] text-[17px] font-semibold mb-5">
         Budget Overview
         <span className="ml-3 text-[13px] font-normal text-[#6b7280]">FY 2026–27 · Expenses</span>

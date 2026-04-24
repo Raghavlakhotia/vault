@@ -33,7 +33,7 @@ function BudgetsInner() {
   useEffect(() => { fetchData() }, [fetchData])
 
   return (
-    <main className="p-6 max-w-[800px] mx-auto">
+    <main className="p-4 md:p-6 max-w-[800px] mx-auto">
       <h1 className="text-[#e4e6f0] font-semibold text-[18px] mb-6">Budgets</h1>
       {loading && <div className="text-[#6b7280] text-center py-12 text-[13px]">Loading...</div>}
       {error && <div className="text-red-400 text-center py-12 text-[13px]">{error}</div>}

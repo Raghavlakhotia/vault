@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Suspense } from 'react'
 import { Inter } from 'next/font/google'
 import './globals.css'
@@ -11,10 +11,15 @@ export const metadata: Metadata = {
   description: 'Household budget manager',
 }
 
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+}
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className={`${inter.className} bg-[#0f1117] min-h-screen`}>
+      <body className={`${inter.className} bg-[#0f1117] min-h-screen pb-20 md:pb-0`}>
         <Suspense fallback={<div className="h-[52px] bg-[#13161f] border-b border-white/[0.07]" />}>
           <Nav />
         </Suspense>

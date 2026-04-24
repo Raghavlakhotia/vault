@@ -52,7 +52,9 @@ export default function ExpenseTable({ expenses, onDelete }: Props) {
       </div>
 
       {deleteError && <p className="text-red-400 text-[12px] mb-3">{deleteError}</p>}
-      <div className="bg-[#1a1d27] border border-white/[0.07] rounded-xl overflow-hidden">
+      <div className="overflow-x-auto rounded-xl border border-white/[0.07]">
+      <div className="min-w-[560px]">
+      <div className="bg-[#1a1d27] overflow-hidden">
         {filtered.length === 0 ? (
           <div className="py-12 text-center text-[#6b7280] text-[13px]">No expenses found.</div>
         ) : (
@@ -116,6 +118,8 @@ export default function ExpenseTable({ expenses, onDelete }: Props) {
             </tbody>
           </table>
         )}
+      </div>
+      </div>
       </div>
     </div>
   )

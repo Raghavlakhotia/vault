@@ -49,7 +49,7 @@ export default function DefaultBudgetPage() {
   }
 
   return (
-    <main className="p-6 max-w-[800px] mx-auto">
+    <main className="p-4 md:p-6 max-w-[800px] mx-auto">
       <div className="mb-6">
         <h1 className="text-[#e4e6f0] font-semibold text-[18px]">Default Budget</h1>
         <p className="text-[#6b7280] text-[13px] mt-1">

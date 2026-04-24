@@ -76,7 +76,7 @@ export default function WealthOverviewPage() {
 
   if (assets.length === 0) {
     return (
-      <div className="px-8 py-6 max-w-screen-xl mx-auto">
+      <div className="px-4 py-4 md:px-8 md:py-6 max-w-screen-xl mx-auto">
         <h1 className="text-[#e4e6f0] text-[17px] font-semibold mb-2">Wealth Overview</h1>
         <p className="text-[#6b7280] text-[13px]">No assets yet. Add one via Wealth → Add Asset.</p>
       </div>
@@ -89,7 +89,7 @@ export default function WealthOverviewPage() {
   })
 
   return (
-    <div className="px-8 py-6 max-w-screen-xl mx-auto">
+    <div className="px-4 py-4 md:px-8 md:py-6 max-w-screen-xl mx-auto">
       <div className="flex items-start justify-between mb-5">
         <h1 className="text-[#e4e6f0] text-[17px] font-semibold">
           Wealth Overview
