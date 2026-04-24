@@ -42,20 +42,18 @@ export default function AddExpenseDrawer({ isOpen, onClose, onSuccess }: Props) 
     }
   }
 
+  if (!isOpen) return null
+
   return (
-    <>
-      {isOpen && <div className="fixed inset-0 bg-black/50 z-40" onClick={onClose} />}
-      <div
-        className={`fixed right-0 top-0 h-full w-96 bg-[#13161f] border-l border-white/[0.07] z-50 flex flex-col shadow-2xl transform transition-transform duration-300 ease-in-out ${
-          isOpen ? 'translate-x-0' : 'translate-x-full'
-        }`}
-      >
-        <div className="flex justify-between items-center p-5 border-b border-white/[0.07]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative bg-[#13161f] border border-white/[0.1] rounded-2xl shadow-2xl w-full max-w-md mx-4 flex flex-col max-h-[90vh]">
+        <div className="flex justify-between items-center px-6 py-4 border-b border-white/[0.07]">
           <h2 className="text-[#e4e6f0] font-semibold text-[15px]">Add Expense</h2>
-          <button onClick={onClose} className="text-[#6b7280] hover:text-[#9ca3af] text-2xl leading-none" aria-label="Close drawer">×</button>
+          <button onClick={onClose} className="text-[#6b7280] hover:text-[#9ca3af] text-2xl leading-none" aria-label="Close">×</button>
         </div>
 
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-5 flex flex-col gap-4">
+        <form onSubmit={handleSubmit} className="overflow-y-auto px-6 py-5 flex flex-col gap-4">
           <div>
             <label className="block text-[11px] text-[#6b7280] uppercase tracking-wider mb-1.5">Amount (₹)</label>
             <input
@@ -121,12 +119,12 @@ export default function AddExpenseDrawer({ isOpen, onClose, onSuccess }: Props) 
           <button
             type="submit"
             disabled={saving}
-            className="mt-auto bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-medium py-2.5 rounded-lg transition-colors"
+            className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-medium py-2.5 rounded-lg transition-colors"
           >
             {saving ? 'Saving...' : 'Add Expense'}
           </button>
         </form>
       </div>
-    </>
+    </div>
   )
 }
