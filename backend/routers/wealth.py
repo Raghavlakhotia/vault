@@ -27,8 +27,15 @@ def get_wealth_dashboard(month_year: str):
     for a in assets:
         h = holdings_map.get(a["asset_id"])
         inv = h["invested_value"] if h else 0.0
-        mkt = h["market_value"] if h else 0.0
-        ret = ((mkt - inv) / inv * 100) if (h and inv > 0) else None
+        use_exp = h.get("use_expected_return", False) if h else False
+        # When use_expected_return, market value mirrors invested and return = expected
+        mkt = inv if use_exp else (h["market_value"] if h else 0.0)
+        if h and use_exp:
+            ret = a["expected_return"]
+        elif h and inv > 0:
+            ret = (mkt - inv) / inv * 100
+        else:
+            ret = None
         rows.append(WealthRow(
             asset_id=a["asset_id"],
             asset_name=a["asset_name"],
@@ -38,6 +45,7 @@ def get_wealth_dashboard(month_year: str):
             invested_value=inv,
             market_value=mkt,
             returns=round(ret, 2) if ret is not None else None,
+            use_expected_return=use_exp,
         ))
 
     total_inv = sum(r.invested_value for r in rows)

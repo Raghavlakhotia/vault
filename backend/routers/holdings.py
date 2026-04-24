@@ -42,6 +42,7 @@ def update_holding(holding_id: int, body: HoldingUpdate):
         if h["id"] == holding_id:
             h["invested_value"] = body.invested_value
             h["market_value"] = body.market_value
+            h["use_expected_return"] = body.use_expected_return
             save_holdings(holdings)
             return HoldingOut(**h)
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Holding not found.")

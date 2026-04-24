@@ -93,10 +93,12 @@ class HoldingCreate(BaseModel):
     month_year: str
     invested_value: float = Field(ge=0)
     market_value: float = Field(ge=0)
+    use_expected_return: bool = False
 
 class HoldingUpdate(BaseModel):
     invested_value: float = Field(ge=0)
     market_value: float = Field(ge=0)
+    use_expected_return: bool = False
 
 class HoldingOut(BaseModel):
     id: int
@@ -104,6 +106,7 @@ class HoldingOut(BaseModel):
     month_year: str
     invested_value: float
     market_value: float
+    use_expected_return: bool = False
 
 class WealthRow(BaseModel):
     asset_id: int
@@ -114,6 +117,7 @@ class WealthRow(BaseModel):
     invested_value: float
     market_value: float
     returns: Optional[float]
+    use_expected_return: bool = False
 
 class WealthTotals(BaseModel):
     weighted_expected_return: Optional[float]
