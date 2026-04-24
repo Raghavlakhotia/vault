@@ -6,7 +6,7 @@ import { formatINR } from '@/lib/utils'
 interface Props {
   data: WealthDashboardResponse
   onDeleteHolding: (id: number) => Promise<void>
-  onEditHolding: (id: number, invested: number, market: number) => Promise<void>
+  onEditHolding: (id: number, invested: number, market: number, useExp: boolean) => Promise<void>
 }
 
 function returnColor(ret: number, expected: number) {
@@ -24,8 +24,11 @@ function categoryBadge(cat: string) {
 function ReturnCell({ row }: { row: WealthRow }) {
   if (row.returns === null) return <span className="text-[#6b7280]">—</span>
   return (
-    <span className={returnColor(row.returns, row.expected_return)}>
+    <span className={`inline-flex items-center gap-1 ${returnColor(row.returns, row.expected_return)}`}>
       {row.returns.toFixed(1)}%
+      {row.use_expected_return && (
+        <span className="text-[10px] text-[#6b7280]" title="Using asset's expected return">~</span>
+      )}
     </span>
   )
 }
@@ -33,19 +36,28 @@ function ReturnCell({ row }: { row: WealthRow }) {
 function DataRow({ row, onDelete, onEdit }: {
   row: WealthRow
   onDelete: (id: number) => Promise<void>
-  onEdit: (id: number, inv: number, mkt: number) => Promise<void>
+  onEdit: (id: number, inv: number, mkt: number, useExp: boolean) => Promise<void>
 }) {
   const [editing, setEditing] = useState(false)
   const [invested, setInvested] = useState(row.invested_value.toString())
   const [market, setMarket] = useState(row.market_value.toString())
+  const [useExp, setUseExp] = useState(row.use_expected_return)
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
 
   async function handleSave() {
     setSaving(true)
-    await onEdit(row.holding_id!, parseFloat(invested) || 0, parseFloat(market) || 0)
+    const inv = parseFloat(invested) || 0
+    await onEdit(row.holding_id!, inv, useExp ? inv : (parseFloat(market) || 0), useExp)
     setSaving(false)
     setEditing(false)
+  }
+
+  function handleCancel() {
+    setEditing(false)
+    setInvested(row.invested_value.toString())
+    setMarket(row.market_value.toString())
+    setUseExp(row.use_expected_return)
   }
 
   async function handleDelete() {
@@ -66,12 +78,23 @@ function DataRow({ row, onDelete, onEdit }: {
       <td className={`${tdBase} text-right text-[#9ca3af]`}>{row.expected_return}%</td>
       <td className={`${tdBase} text-right`}>
         {editing ? (
-          <input
-            type="number"
-            value={invested}
-            onChange={(e) => setInvested(e.target.value)}
-            className="w-28 bg-[#0f1117] border border-white/[0.12] rounded px-2 py-1 text-[13px] text-[#e4e6f0] text-right focus:outline-none focus:border-emerald-500/50"
-          />
+          <div className="flex flex-col items-end gap-1.5">
+            <input
+              type="number"
+              value={invested}
+              onChange={(e) => setInvested(e.target.value)}
+              className="w-28 bg-[#0f1117] border border-white/[0.12] rounded px-2 py-1 text-[13px] text-[#e4e6f0] text-right focus:outline-none focus:border-emerald-500/50"
+            />
+            <label className="flex items-center gap-1.5 text-[11px] text-[#6b7280] cursor-pointer whitespace-nowrap">
+              <input
+                type="checkbox"
+                checked={useExp}
+                onChange={(e) => setUseExp(e.target.checked)}
+                className="accent-emerald-500"
+              />
+              Use expected return
+            </label>
+          </div>
         ) : (
           <span className={row.holding_id ? 'text-[#e4e6f0]' : 'text-[#6b7280]'}>
             {row.holding_id ? formatINR(row.invested_value) : '—'}
@@ -80,12 +103,16 @@ function DataRow({ row, onDelete, onEdit }: {
       </td>
       <td className={`${tdBase} text-right`}>
         {editing ? (
-          <input
-            type="number"
-            value={market}
-            onChange={(e) => setMarket(e.target.value)}
-            className="w-28 bg-[#0f1117] border border-white/[0.12] rounded px-2 py-1 text-[13px] text-[#e4e6f0] text-right focus:outline-none focus:border-emerald-500/50"
-          />
+          useExp ? (
+            <span className="text-[#6b7280] text-[12px]">= Invested</span>
+          ) : (
+            <input
+              type="number"
+              value={market}
+              onChange={(e) => setMarket(e.target.value)}
+              className="w-28 bg-[#0f1117] border border-white/[0.12] rounded px-2 py-1 text-[13px] text-[#e4e6f0] text-right focus:outline-none focus:border-emerald-500/50"
+            />
+          )
         ) : (
           <span className={row.holding_id ? 'text-[#e4e6f0]' : 'text-[#6b7280]'}>
             {row.holding_id ? formatINR(row.market_value) : '—'}
@@ -106,7 +133,7 @@ function DataRow({ row, onDelete, onEdit }: {
               {saving ? '…' : 'Save'}
             </button>
             <button
-              onClick={() => { setEditing(false); setInvested(row.invested_value.toString()); setMarket(row.market_value.toString()) }}
+              onClick={handleCancel}
               className="px-2.5 py-1 rounded text-[12px] bg-white/[0.06] text-[#9ca3af] hover:bg-white/10 transition-colors"
             >
               Cancel

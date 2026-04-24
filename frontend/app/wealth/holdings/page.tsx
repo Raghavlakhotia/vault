@@ -15,6 +15,7 @@ function AddHoldingInner() {
   const [monthYear, setMonthYear] = useState(month)
   const [invested, setInvested] = useState('')
   const [market, setMarket] = useState('')
+  const [useExp, setUseExp] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
@@ -34,11 +35,13 @@ function AddHoldingInner() {
     setSaving(true)
     setError('')
     try {
+      const inv = parseFloat(invested) || 0
       await api.createHolding({
         asset_id: assetId,
         month_year: monthYear,
-        invested_value: parseFloat(invested) || 0,
-        market_value: parseFloat(market) || 0,
+        invested_value: inv,
+        market_value: useExp ? inv : (parseFloat(market) || 0),
+        use_expected_return: useExp,
       })
       router.push(`/wealth?month=${monthYear}`)
     } catch (err) {
@@ -106,24 +109,37 @@ function AddHoldingInner() {
             className={inputCls}
           />
         </div>
-        <div>
-          <label className={labelCls}>Market Value (₹)</label>
+        <label className="flex items-center gap-2.5 cursor-pointer select-none">
           <input
-            type="number"
-            required
-            min="0"
-            step="0.01"
-            placeholder="e.g. 52000"
-            value={market}
-            onChange={(e) => setMarket(e.target.value)}
-            className={inputCls}
+            type="checkbox"
+            checked={useExp}
+            onChange={(e) => setUseExp(e.target.checked)}
+            className="accent-emerald-500 w-4 h-4"
           />
-        </div>
+          <span className="text-[13px] text-[#9ca3af]">
+            Use expected return <span className="text-[#6b7280]">(e.g. EPF, PPF — market value unknown)</span>
+          </span>
+        </label>
+        {!useExp && (
+          <div>
+            <label className={labelCls}>Market Value (₹)</label>
+            <input
+              type="number"
+              required
+              min="0"
+              step="0.01"
+              placeholder="e.g. 52000"
+              value={market}
+              onChange={(e) => setMarket(e.target.value)}
+              className={inputCls}
+            />
+          </div>
+        )}
         {error && <p className="text-red-400 text-[12px]">{error}</p>}
         <div className="flex gap-3 pt-1">
           <button
             type="submit"
-            disabled={saving || assetId === '' || !invested || !market}
+            disabled={saving || assetId === '' || !invested || (!useExp && !market)}
             className="flex-1 py-2.5 rounded-lg bg-emerald-500/15 text-emerald-400 text-[13px] font-medium hover:bg-emerald-500/25 transition-colors disabled:opacity-50"
           >
             {saving ? 'Adding…' : 'Add Holding'}

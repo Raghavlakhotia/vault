@@ -57,6 +57,7 @@ export interface HoldingOut {
   month_year: string
   invested_value: number
   market_value: number
+  use_expected_return: boolean
 }
 
 export interface WealthRow {
@@ -68,6 +69,7 @@ export interface WealthRow {
   invested_value: number
   market_value: number
   returns: number | null
+  use_expected_return: boolean
 }
 
 export interface WealthTotals {
@@ -149,14 +151,14 @@ export const api = {
   getWealthDashboard: (month: string) =>
     request<WealthDashboardResponse>(`/api/wealth/${month}`),
 
-  createHolding: (body: { asset_id: number; month_year: string; invested_value: number; market_value: number }) =>
+  createHolding: (body: { asset_id: number; month_year: string; invested_value: number; market_value: number; use_expected_return?: boolean }) =>
     request<HoldingOut>('/api/holdings/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     }),
 
-  updateHolding: (id: number, body: { invested_value: number; market_value: number }) =>
+  updateHolding: (id: number, body: { invested_value: number; market_value: number; use_expected_return?: boolean }) =>
     request<HoldingOut>(`/api/holdings/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },

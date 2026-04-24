@@ -32,8 +32,8 @@ function WealthInner() {
     fetchData()
   }
 
-  async function handleEditHolding(id: number, invested: number, market: number) {
-    await api.updateHolding(id, { invested_value: invested, market_value: market })
+  async function handleEditHolding(id: number, invested: number, market: number, useExp: boolean) {
+    await api.updateHolding(id, { invested_value: invested, market_value: market, use_expected_return: useExp })
     fetchData()
   }
 
