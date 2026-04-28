@@ -249,7 +249,7 @@ export default function RetirementPage() {
                 min={form.current_age + 1}
                 max={80}
                 value={form.target_retirement_age}
-                onChange={e => setField('target_retirement_age', Number(e.target.value))}
+                onChange={e => setField('target_retirement_age', Math.max(Number(e.target.value), form.current_age + 1))}
                 className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </label>
