@@ -39,7 +39,7 @@ def _gap_sip_stepup(gap: float, years: int) -> float:
     """Starting monthly SIP with 10 % annual step-up to accumulate gap."""
     r = GROWTH_RATE / 12
     fv_factor = sum(
-        (1 + STEP_UP) ** y * ((1 + r) ** ((years - y) * 12) - 1) / r * (1 + r)
+        (1 + STEP_UP) ** y * ((1 + r) ** ((years - y) * 12) - 1) / r
         for y in range(int(years))
     )
     return gap / fv_factor if fv_factor > 0 else 0
@@ -52,8 +52,8 @@ def _fire_age(
     inflation_rate: float,
     monthly_expense: float,
 ) -> Optional[int]:
-    """Earliest age at which projected assets >= corpus_needed (capped at 70)."""
-    for yrs in range(1, 71 - current_age):
+    """Earliest age at which projected assets >= corpus_needed (capped at 80)."""
+    for yrs in range(1, 81 - current_age):
         inflated = monthly_expense * (1 + inflation_rate / 100) ** yrs
         needed   = inflated * 12 / SWR
         total    = _fv_corpus(corpus, yrs) + _fv_sip(sip, yrs)
@@ -63,7 +63,7 @@ def _fire_age(
 
 
 @router.post("/calculate", response_model=RetirementResponse)
-def calculate(body: RetirementInput, username: str = Depends(require_auth)):
+def calculate_retirement(body: RetirementInput, current_user: str = Depends(require_auth)):
     years = body.target_retirement_age - body.current_age
     if years <= 0:
         raise HTTPException(status_code=400, detail="Target retirement age must exceed current age")
