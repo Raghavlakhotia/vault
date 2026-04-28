@@ -153,7 +153,7 @@ class RetirementScenario(BaseModel):
     gap: float                       # 0 if already funded
     gap_sip_flat: float              # monthly SIP at 12% to close gap
     gap_sip_stepup: float            # starting monthly SIP with 10% annual step-up
-    fire_age: Optional[int]          # earliest age fully funded; None if > 70
+    fire_age: Optional[int]          # earliest age fully funded; None if > 80
     fire_year: Optional[int]
 
 class RetirementResponse(BaseModel):
