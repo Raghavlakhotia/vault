@@ -339,9 +339,6 @@ export default function RetirementPage() {
       <main className="w-3/5 overflow-y-auto p-6">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold text-gray-900">FIRE Projections</h2>
-          {loading && (
-            <span className="text-sm text-indigo-600 font-medium animate-pulse">Calculating…</span>
-          )}
         </div>
 
         {!results ? (
@@ -349,14 +346,21 @@ export default function RetirementPage() {
             Enter inputs to see your FIRE projections
           </div>
         ) : (
-          <div className={`flex flex-col gap-6 transition-opacity duration-200 ${loading ? 'opacity-50' : 'opacity-100'}`}>
-            {results.scenarios.map(scenario => (
-              <ScenarioCard
-                key={scenario.name}
-                scenario={scenario}
-                yearsToTarget={results.years_to_target}
-              />
-            ))}
+          <div className="relative">
+            <div className={`flex flex-col gap-6 transition-opacity duration-200 ${loading ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
+              {results.scenarios.map(scenario => (
+                <ScenarioCard
+                  key={scenario.name}
+                  scenario={scenario}
+                  currentAge={form.current_age}
+                />
+              ))}
+            </div>
+            {loading && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="text-gray-500 text-sm font-medium">Calculating…</span>
+              </div>
+            )}
           </div>
         )}
       </main>
@@ -368,16 +372,16 @@ export default function RetirementPage() {
 
 function ScenarioCard({
   scenario,
-  yearsToTarget,
+  currentAge,
 }: {
   scenario: RetirementScenario
-  yearsToTarget: number
+  currentAge: number
 }) {
   const fundedPct = Math.min(Math.max(scenario.funded_pct, 0), 100)
   const isBeyond80 = scenario.fire_age === null
 
-  // Years away: if FIRE has already been reached, use 0; else use actual years
-  const yearsAway = isBeyond80 ? null : Math.max(0, (scenario.fire_age ?? 0) - yearsToTarget)
+  // Years away: fire_age is an absolute age; subtract current age to get duration
+  const yearsAway = isBeyond80 ? null : Math.max(0, (scenario.fire_age ?? 0) - currentAge)
 
   return (
     <div className="bg-white rounded-lg shadow p-6">
