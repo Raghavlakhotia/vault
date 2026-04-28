@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 
 const API = process.env.NEXT_PUBLIC_API_URL
 
@@ -44,8 +44,6 @@ function formatINR(n: number): string {
   return `₹${Math.round(n).toLocaleString('en-IN')}`
 }
 
-const currentMonth = new Date().toISOString().slice(0, 7)
-
 // ── Main component ────────────────────────────────────────────────────────────
 
 export default function RetirementPage() {
@@ -73,9 +71,7 @@ export default function RetirementPage() {
   // Results state
   const [results, setResults] = useState<RetirementResponse | null>(null)
   const [loading, setLoading] = useState(false)
-
-  // Debounce timer ref
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [calcError, setCalcError] = useState<string | null>(null)
 
   // ── On mount: read token from localStorage ──────────────────────────────────
   useEffect(() => {
@@ -88,6 +84,7 @@ export default function RetirementPage() {
     if (!token) return
 
     async function fetchCorpus() {
+      const currentMonth = new Date().toISOString().slice(0, 7)
       try {
         const res = await fetch(`${API}/api/wealth/${currentMonth}`, {
           headers: { Authorization: `Bearer ${token}` },
@@ -109,33 +106,45 @@ export default function RetirementPage() {
   // ── Debounced calculation ───────────────────────────────────────────────────
   useEffect(() => {
     if (!token) return
-
-    if (timerRef.current) clearTimeout(timerRef.current)
-
-    timerRef.current = setTimeout(async () => {
+    const controller = new AbortController()
+    const id = setTimeout(async () => {
       setLoading(true)
       try {
         const res = await fetch(`${API}/api/retirement/calculate`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(form),
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({
+            current_age: form.current_age,
+            target_retirement_age: form.target_retirement_age,
+            inflation_rate: form.inflation_rate,
+            monthly_sip: form.monthly_sip,
+            current_corpus: form.current_corpus,
+            expenses_lean: form.expenses_lean || 1,
+            expenses_regular: form.expenses_regular || 1,
+            expenses_fat: form.expenses_fat || 1,
+          }),
+          signal: controller.signal,
         })
         if (res.ok) {
-          const data: RetirementResponse = await res.json()
-          setResults(data)
+          setResults(await res.json())
+          setCalcError(null)
+        } else {
+          const err = await res.json().catch(() => ({}))
+          setCalcError(err.detail ?? 'Calculation failed')
+          setResults(null)
         }
-      } catch {
-        // silently ignore calculation errors
+      } catch (e) {
+        if (e instanceof Error && e.name !== 'AbortError') {
+          setCalcError('Could not reach the server')
+          setResults(null)
+        }
       } finally {
         setLoading(false)
       }
     }, 400)
-
     return () => {
-      if (timerRef.current) clearTimeout(timerRef.current)
+      clearTimeout(id)
+      controller.abort()
     }
   }, [form, token])
 
@@ -181,6 +190,7 @@ export default function RetirementPage() {
                 value={loginUsername}
                 onChange={e => setLoginUsername(e.target.value)}
                 required
+                autoComplete="username"
                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
@@ -191,6 +201,7 @@ export default function RetirementPage() {
                 value={loginPassword}
                 onChange={e => setLoginPassword(e.target.value)}
                 required
+                autoComplete="current-password"
                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
@@ -235,7 +246,7 @@ export default function RetirementPage() {
               <span className="text-sm font-medium text-gray-700">Target Retirement Age</span>
               <input
                 type="number"
-                min={19}
+                min={form.current_age + 1}
                 max={80}
                 value={form.target_retirement_age}
                 onChange={e => setField('target_retirement_age', Number(e.target.value))}
@@ -340,6 +351,10 @@ export default function RetirementPage() {
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold text-gray-900">FIRE Projections</h2>
         </div>
+
+        {calcError && (
+          <div className="text-red-600 text-sm p-4 bg-red-50 rounded-lg">{calcError}</div>
+        )}
 
         {!results ? (
           <div className="flex items-center justify-center h-64 text-gray-400 text-sm">
