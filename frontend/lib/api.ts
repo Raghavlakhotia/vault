@@ -1,3 +1,5 @@
+import { getToken, clearToken, setToken } from './auth'
+
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000'
 
 export interface DashboardRow {
@@ -93,13 +95,55 @@ export interface WealthDashboardResponse {
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, init)
+  const token = getToken()
+  const headers: Record<string, string> = {
+    ...(init?.headers as Record<string, string> ?? {}),
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  }
+  const res = await fetch(`${BASE}${path}`, { ...init, headers })
+  if (res.status === 401) {
+    clearToken()
+    window.location.href = '/login'
+    throw new Error('Unauthorized')
+  }
   if (!res.ok) {
     const text = await res.text()
     throw new Error(text || `HTTP ${res.status}`)
   }
   if (res.status === 204) return undefined as unknown as T
   return res.json() as Promise<T>
+}
+
+export const authApi = {
+  login: async (username: string, password: string): Promise<string> => {
+    const res = await fetch(`${BASE}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password }),
+    })
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      throw new Error(data.detail || 'Login failed')
+    }
+    const data = await res.json()
+    setToken(data.access_token)
+    return data.access_token
+  },
+
+  register: async (username: string, password: string): Promise<string> => {
+    const res = await fetch(`${BASE}/api/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password }),
+    })
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      throw new Error(data.detail || 'Registration failed')
+    }
+    const data = await res.json()
+    setToken(data.access_token)
+    return data.access_token
+  },
 }
 
 export const api = {
@@ -191,7 +235,11 @@ export const api = {
   listBooks: () => request<BookMeta[]>('/api/library/'),
 
   getBook: async (slug: string): Promise<string> => {
-    const res = await fetch(`${BASE}/api/library/${slug}`)
+    const token = getToken()
+    const res = await fetch(`${BASE}/api/library/${slug}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
+    if (res.status === 401) { clearToken(); window.location.href = '/login'; throw new Error('Unauthorized') }
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     return res.text()
   },
