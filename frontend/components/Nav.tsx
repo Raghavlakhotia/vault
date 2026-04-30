@@ -3,7 +3,6 @@ import Link from 'next/link'
 import { useState, useEffect, useRef } from 'react'
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import { currentMonth, prevMonth, nextMonth, formatMonthLabel } from '@/lib/utils'
-import { clearToken } from '@/lib/auth'
 import AddExpenseDrawer from '@/components/AddExpenseDrawer'
 
 const BUDGET_LINKS = [
@@ -48,13 +47,6 @@ export default function Nav() {
   function navigate(newMonth: string) {
     router.replace(`${pathname}?month=${newMonth}`)
   }
-
-  function signOut() {
-    clearToken()
-    router.replace('/login')
-  }
-
-  if (pathname === '/login') return null
 
   const isWealthSection = pathname.startsWith('/wealth')
   const isLibrarySection = pathname.startsWith('/library')
@@ -184,19 +176,6 @@ export default function Nav() {
         </div>
 
         {!hideMonthSwitcher && <MonthSwitcher />}
-
-        <button
-          onClick={signOut}
-          aria-label="Sign out"
-          title="Sign out"
-          className="ml-3 text-[#4b5563] hover:text-[#9ca3af] transition-colors"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-            <polyline points="16 17 21 12 16 7" />
-            <line x1="21" y1="12" x2="9" y2="12" />
-          </svg>
-        </button>
       </nav>
 
       {/* ── Mobile top bar ────────────────────────────────────────── */}
@@ -208,17 +187,6 @@ export default function Nav() {
         ) : (
           <div className="w-[24px] shrink-0" />
         )}
-        <button
-          onClick={signOut}
-          aria-label="Sign out"
-          className="text-[#4b5563] hover:text-[#9ca3af] transition-colors shrink-0"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-            <polyline points="16 17 21 12 16 7" />
-            <line x1="21" y1="12" x2="9" y2="12" />
-          </svg>
-        </button>
       </nav>
 
       {/* ── Mobile bottom nav bar ─────────────────────────────────── */}
