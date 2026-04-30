@@ -2,10 +2,11 @@ import math
 import statistics
 from collections import defaultdict
 from datetime import datetime
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from typing import Optional
 from models import WealthRow, WealthTotals, WealthDashboardResponse
 from storage import get_assets, get_holdings
+from dependencies import require_auth
 
 router = APIRouter()
 
@@ -18,20 +19,17 @@ def _validate_month(month: str) -> None:
 
 
 @router.get("/ratios")
-def get_wealth_ratios(risk_free: float = Query(default=6.5, description="Annual risk-free rate in %")):
-    """
-    Sharpe and Sortino ratios computed from monthly portfolio returns across all recorded months.
-    Returns null for both when fewer than 3 months of data exist.
-    risk_free: annual rate used as the hurdle (default 6.5% — approximate India govt bond yield).
-    """
-    assets = get_assets()
-    all_holdings = get_holdings()
+def get_wealth_ratios(
+    risk_free: float = Query(default=6.5, description="Annual risk-free rate in %"),
+    current_user: str = Depends(require_auth),
+):
+    assets = get_assets(current_user)
+    all_holdings = get_holdings(current_user)
     if not assets or not all_holdings:
         return {"sharpe": None, "sortino": None, "months": 0, "risk_free": risk_free}
 
     asset_map = {a["asset_id"]: a for a in assets}
 
-    # Group holdings by month, compute portfolio return for each month
     by_month: dict[str, list] = defaultdict(list)
     for h in all_holdings:
         by_month[h["month_year"]].append(h)
@@ -62,28 +60,25 @@ def get_wealth_ratios(risk_free: float = Query(default=6.5, description="Annual 
 
     mean_ret = statistics.mean(monthly_returns)
     std_ret = statistics.stdev(monthly_returns)
-
     sharpe = round((mean_ret - risk_free) / std_ret, 2) if std_ret > 0 else None
 
-    # Downside deviation: RMS of returns below the risk-free hurdle
     below_rfr = [r - risk_free for r in monthly_returns if r < risk_free]
     if below_rfr:
         downside_dev = math.sqrt(sum(x ** 2 for x in below_rfr) / len(below_rfr))
         sortino = round((mean_ret - risk_free) / downside_dev, 2) if downside_dev > 0 else None
     else:
-        # All periods beat the hurdle — Sortino is positive infinite; show a high value
         sortino = None
 
     return {"sharpe": sharpe, "sortino": sortino, "months": n, "risk_free": risk_free}
 
 
 @router.get("/{month_year}", response_model=WealthDashboardResponse)
-def get_wealth_dashboard(month_year: str):
+def get_wealth_dashboard(month_year: str, current_user: str = Depends(require_auth)):
     _validate_month(month_year)
-    assets = get_assets()
+    assets = get_assets(current_user)
     holdings_map = {
         h["asset_id"]: h
-        for h in get_holdings()
+        for h in get_holdings(current_user)
         if h["month_year"] == month_year
     }
 
@@ -92,7 +87,6 @@ def get_wealth_dashboard(month_year: str):
         h = holdings_map.get(a["asset_id"])
         inv = h["invested_value"] if h else 0.0
         use_exp = h.get("use_expected_return", False) if h else False
-        # When use_expected_return, market value mirrors invested and return = expected
         mkt = inv if use_exp else (h["market_value"] if h else 0.0)
         if h and use_exp:
             ret = a["expected_return"]

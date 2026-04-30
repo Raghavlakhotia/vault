@@ -14,11 +14,11 @@ def next_month(m: str) -> str:
     return f"{y+1}-01" if mo == 12 else f"{y}-{mo+1:02d}"
 
 
-def build_dashboard(month: str) -> DashboardResponse:
+def build_dashboard(month: str, username: str) -> DashboardResponse:
     prev = prev_month(month)
-    cats    = get_categories()
-    budgets = get_budgets()
-    expenses = get_expenses()
+    cats     = get_categories(username)
+    budgets  = get_budgets(username)
+    expenses = get_expenses(username)
 
     defaults    = budgets.get("default", {})
     curr_budget = {**defaults, **budgets.get(month, {})}

@@ -129,3 +129,33 @@ class WealthDashboardResponse(BaseModel):
     month_year: str
     rows: list[WealthRow]
     totals: WealthTotals
+
+
+# ── Retirement ──────────────────────────────────────────────────────────────────
+
+class RetirementInput(BaseModel):
+    current_age: int = Field(ge=18, le=70)
+    target_retirement_age: int = Field(ge=19, le=80)
+    inflation_rate: float = Field(default=6.0, ge=1.0, le=20.0)
+    monthly_sip: float = Field(ge=0)
+    current_corpus: float = Field(ge=0)
+    expenses_lean: float = Field(gt=0)
+    expenses_regular: float = Field(gt=0)
+    expenses_fat: float = Field(gt=0)
+
+class RetirementScenario(BaseModel):
+    name: str
+    monthly_expense_today: float
+    monthly_expense_at_retirement: float
+    corpus_needed: float
+    projected_corpus: float          # FV of current corpus + SIP at target age
+    funded_pct: float                # 0–100
+    gap: float                       # 0 if already funded
+    gap_sip_flat: float              # monthly SIP at 12% to close gap
+    gap_sip_stepup: float            # starting monthly SIP with 10% annual step-up
+    fire_age: Optional[int]          # earliest age fully funded; None if > 80
+    fire_year: Optional[int]
+
+class RetirementResponse(BaseModel):
+    scenarios: list[RetirementScenario]
+    years_to_target: int
