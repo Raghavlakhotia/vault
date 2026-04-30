@@ -235,7 +235,11 @@ export const api = {
   listBooks: () => request<BookMeta[]>('/api/library/'),
 
   getBook: async (slug: string): Promise<string> => {
-    const res = await fetch(`${BASE}/api/library/${slug}`)
+    const token = getToken()
+    const res = await fetch(`${BASE}/api/library/${slug}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
+    if (res.status === 401) { clearToken(); window.location.href = '/login'; throw new Error('Unauthorized') }
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     return res.text()
   },
