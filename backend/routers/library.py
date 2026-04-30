@@ -1,7 +1,8 @@
 from pathlib import Path
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel
+from dependencies import require_auth
 
 router = APIRouter()
 
@@ -30,7 +31,7 @@ def _parse_meta(path: Path) -> BookMeta:
 
 
 @router.get("/", response_model=list[BookMeta])
-def list_books():
+def list_books(_: str = Depends(require_auth)):
     books = [
         _parse_meta(p)
         for p in BOOKS_DIR.glob("*.md")
@@ -40,7 +41,7 @@ def list_books():
 
 
 @router.get("/{slug}", response_class=PlainTextResponse)
-def get_book(slug: str):
+def get_book(slug: str, _: str = Depends(require_auth)):
     path = BOOKS_DIR / f"{slug}.md"
     if not path.exists() or not path.is_file():
         raise HTTPException(status_code=404, detail="Book not found.")
