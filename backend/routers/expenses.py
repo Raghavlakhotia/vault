@@ -11,7 +11,7 @@ def list_expenses(month: Optional[str] = Query(None, description="Filter by YYYY
     expenses = get_expenses()
     if month:
         expenses = [e for e in expenses if e["date"][:7] == month]
-    return [ExpenseOut(**e, description=e.get("description", "")) for e in expenses]
+    return [ExpenseOut(**{**e, "description": e.get("description", "")}) for e in expenses]
 
 
 @router.post("/", response_model=ExpenseOut, status_code=status.HTTP_201_CREATED)
@@ -39,7 +39,7 @@ def create_expense(body: ExpenseCreate):
 def get_expense(expense_id: int):
     for e in get_expenses():
         if e["id"] == expense_id:
-            return ExpenseOut(**e, description=e.get("description", ""))
+            return ExpenseOut(**{**e, "description": e.get("description", "")})
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Expense not found.")
 
 

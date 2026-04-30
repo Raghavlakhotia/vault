@@ -13,6 +13,8 @@ def _bootstrap() -> None:
         ("categories.json", []),
         ("budgets.json",    {}),
         ("expenses.json",   []),
+        ("assets.json",     []),
+        ("holdings.json",   []),
     ]
     for name, empty in defaults:
         p = DATA_DIR / name
@@ -51,3 +53,17 @@ def get_expenses() -> list[dict]:
 
 def save_expenses(expenses: list[dict]) -> None:
     _save("expenses.json", expenses)
+
+
+def get_assets() -> list[dict]:
+    return _load("assets.json")
+
+def save_assets(assets: list[dict]) -> None:
+    _save("assets.json", assets)
+
+
+def get_holdings() -> list[dict]:
+    return _load("holdings.json")
+
+def save_holdings(holdings: list[dict]) -> None:
+    _save("holdings.json", holdings)
