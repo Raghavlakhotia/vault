@@ -1,11 +1,12 @@
 """JSON file storage — per-user data in data/{username}/"""
 
 import json
+import os
 import shutil
 from pathlib import Path
 from typing import Any
 
-DATA_DIR = Path(__file__).parent.parent / "data"
+DATA_DIR = Path(os.environ.get("VAULT_DATA_DIR", str(Path(__file__).parent.parent / "data")))
 
 _DEFAULTS: list[tuple[str, Any]] = [
     ("categories.json", []),
