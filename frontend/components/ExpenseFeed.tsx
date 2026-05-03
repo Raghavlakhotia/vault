@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { ExpenseOut } from '@/lib/api'
-import { formatINR, formatDate } from '@/lib/utils'
+import { formatINR, formatDate, paidByBadgeClass } from '@/lib/utils'
 
 const EMOJI: Record<string, string> = {
   Groceries: '🛒',
@@ -44,9 +44,7 @@ export default function ExpenseFeed({ expenses, month, onAddExpense }: Props) {
               <div className="text-[#e4e6f0] font-medium text-[13px] truncate">{e.description || e.category}</div>
               <div className="flex gap-1.5 mt-0.5">
                 <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-white/[0.06] text-[#9ca3af]">{e.category}</span>
-                <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
-                  e.paid_by === 'Husband' ? 'bg-indigo-500/15 text-indigo-300' : 'bg-pink-500/10 text-pink-400'
-                }`}>{e.paid_by}</span>
+                <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${paidByBadgeClass(e.paid_by)}`}>{e.paid_by}</span>
               </div>
             </div>
             <div className="text-right flex-shrink-0">

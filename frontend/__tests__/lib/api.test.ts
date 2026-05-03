@@ -194,6 +194,29 @@ describe('URL construction', () => {
     )
   })
 
+  it('getFamily, createFamilyMember, deleteFamilyMember', async () => {
+    mockFetch(['Husband', 'Wife'])
+    await api.getFamily()
+    expect((global.fetch as jest.Mock).mock.calls[0][0]).toBe(
+      'http://localhost:8000/api/family/',
+    )
+
+    ;(global.fetch as jest.Mock).mockClear()
+    mockFetch(['Husband', 'Wife', 'Daughter'], 201)
+    await api.createFamilyMember('Daughter')
+    const [postUrl, postInit] = (global.fetch as jest.Mock).mock.calls[0]
+    expect(postUrl).toBe('http://localhost:8000/api/family/')
+    expect(postInit.method).toBe('POST')
+    expect(JSON.parse(postInit.body)).toEqual({ name: 'Daughter' })
+
+    ;(global.fetch as jest.Mock).mockClear()
+    mockFetch(['Husband'])
+    await api.deleteFamilyMember('Wife')
+    const [delUrl, delInit] = (global.fetch as jest.Mock).mock.calls[0]
+    expect(delUrl).toBe('http://localhost:8000/api/family/Wife')
+    expect(delInit.method).toBe('DELETE')
+  })
+
   it('listBooks hits /api/library/', async () => {
     mockFetch([])
     await api.listBooks()

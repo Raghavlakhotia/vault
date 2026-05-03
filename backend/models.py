@@ -12,6 +12,12 @@ class CategoryCreate(BaseModel):
     name: str = Field(min_length=1, max_length=64)
 
 
+# ── Family ─────────────────────────────────────────────────────────────────────
+
+class FamilyMemberCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=64)
+
+
 # ── Budgets ────────────────────────────────────────────────────────────────────
 
 class BudgetEntry(BaseModel):

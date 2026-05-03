@@ -7,6 +7,7 @@ import {
   pctBadgeClass,
   limitColor,
   currentMonth,
+  paidByBadgeClass,
 } from '@/lib/utils'
 
 describe('formatINR', () => {
@@ -69,5 +70,20 @@ describe('currentMonth', () => {
 describe('formatMonthLabel', () => {
   it('formats YYYY-MM as a human-readable month label', () => {
     expect(formatMonthLabel('2026-04')).toBe('Apr 2026')
+  })
+})
+
+describe('paidByBadgeClass', () => {
+  it('returns the same class for the same name (deterministic)', () => {
+    expect(paidByBadgeClass('Husband')).toBe(paidByBadgeClass('Husband'))
+    expect(paidByBadgeClass('Daughter')).toBe(paidByBadgeClass('Daughter'))
+  })
+
+  it('returns a non-empty class string', () => {
+    expect(paidByBadgeClass('AnyOne')).toMatch(/bg-/)
+  })
+
+  it('returns a neutral fallback for empty name', () => {
+    expect(paidByBadgeClass('')).toMatch(/bg-white/)
   })
 })

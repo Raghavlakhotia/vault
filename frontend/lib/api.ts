@@ -196,6 +196,19 @@ export const api = {
   deleteCategory: (name: string) =>
     request<string[]>(`/api/categories/${name}`, { method: 'DELETE' }),
 
+  getFamily: () =>
+    request<string[]>('/api/family/'),
+
+  createFamilyMember: (name: string) =>
+    request<string[]>('/api/family/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name }),
+    }),
+
+  deleteFamilyMember: (name: string) =>
+    request<string[]>(`/api/family/${name}`, { method: 'DELETE' }),
+
   getAssets: () =>
     request<AssetOut[]>('/api/assets/'),
 

@@ -4,7 +4,10 @@ import type { ExpenseOut } from '@/lib/api'
 
 jest.mock('@/lib/api', () => ({
   ...jest.requireActual('@/lib/api'),
-  api: { deleteExpense: jest.fn() },
+  api: {
+    deleteExpense: jest.fn(),
+    getFamily: jest.fn().mockResolvedValue(['Husband', 'Wife']),
+  },
 }))
 
 import { api } from '@/lib/api'
@@ -32,34 +35,36 @@ describe('ExpenseTable filtering', () => {
     expense({ id: 3, paid_by: 'Husband', amount: 300 }),
   ]
 
-  it('shows all expenses by default', () => {
+  it('shows all expenses by default', async () => {
     render(<ExpenseTable expenses={expenses} onDelete={() => {}} />)
+    // Wait for family to load and filter buttons to render
+    await screen.findByRole('button', { name: 'Husband' })
     expect(screen.getByText('₹100')).toBeInTheDocument()
     expect(screen.getByText('₹200')).toBeInTheDocument()
     expect(screen.getByText('₹300')).toBeInTheDocument()
     expect(screen.getByText('3 expenses')).toBeInTheDocument()
   })
 
-  it('filters by Husband', () => {
+  it('filters by Husband', async () => {
     render(<ExpenseTable expenses={expenses} onDelete={() => {}} />)
-    fireEvent.click(screen.getByRole('button', { name: 'Husband' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Husband' }))
     expect(screen.getByText('₹100')).toBeInTheDocument()
     expect(screen.queryByText('₹200')).not.toBeInTheDocument()
     expect(screen.getByText('₹300')).toBeInTheDocument()
     expect(screen.getByText('2 expenses')).toBeInTheDocument()
   })
 
-  it('filters by Wife', () => {
+  it('filters by Wife', async () => {
     render(<ExpenseTable expenses={expenses} onDelete={() => {}} />)
-    fireEvent.click(screen.getByRole('button', { name: 'Wife' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Wife' }))
     expect(screen.queryByText('₹100')).not.toBeInTheDocument()
     expect(screen.getByText('₹200')).toBeInTheDocument()
     expect(screen.getByText('1 expense')).toBeInTheDocument()
   })
 
-  it('shows "No expenses found." when filter result is empty', () => {
+  it('shows "No expenses found." when filter result is empty', async () => {
     render(<ExpenseTable expenses={[expense({ paid_by: 'Husband' })]} onDelete={() => {}} />)
-    fireEvent.click(screen.getByRole('button', { name: 'Wife' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Wife' }))
     expect(screen.getByText('No expenses found.')).toBeInTheDocument()
   })
 })

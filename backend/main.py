@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from auth_utils import hash_password
 from storage import get_users, save_users, migrate_legacy_data
-from routers import categories, budgets, expenses, dashboard, assets, holdings, wealth, library
+from routers import categories, budgets, expenses, dashboard, assets, holdings, wealth, library, family
 from routers import auth
 
 app = FastAPI(
@@ -52,6 +52,7 @@ app.include_router(assets.router,     prefix="/api/assets",     tags=["Assets"])
 app.include_router(holdings.router,   prefix="/api/holdings",   tags=["Holdings"])
 app.include_router(wealth.router,     prefix="/api/wealth",     tags=["Wealth"])
 app.include_router(library.router,    prefix="/api/library",    tags=["Library"])
+app.include_router(family.router,     prefix="/api/family",     tags=["Family"])
 
 
 @app.get("/", tags=["Meta"])

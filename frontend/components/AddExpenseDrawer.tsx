@@ -9,21 +9,25 @@ interface Props {
 }
 
 const today = () => new Date().toISOString().slice(0, 10)
-const BLANK: ExpenseCreate = { amount: 0, category: '', description: '', paid_by: 'Husband' }
+const BLANK: ExpenseCreate = { amount: 0, category: '', description: '', paid_by: '' }
 
 const inputCls = 'w-full bg-[#1a1d27] border border-white/[0.07] rounded-lg px-3 text-[#e4e6f0] focus:outline-none focus:border-indigo-500/50'
 const labelCls = 'block text-[11px] text-[#6b7280] uppercase tracking-wider mb-1.5'
 
 export default function AddExpenseDrawer({ isOpen, onClose, onSuccess }: Props) {
   const [categories, setCategories] = useState<string[]>([])
+  const [family, setFamily] = useState<string[]>([])
   const [form, setForm] = useState<ExpenseCreate & { date: string }>({ ...BLANK, date: today() })
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
   useEffect(() => {
     if (isOpen) {
-      api.getCategories().then(setCategories)
-      setForm({ ...BLANK, date: today() })
+      Promise.all([api.getCategories(), api.getFamily()]).then(([cats, fam]) => {
+        setCategories(cats)
+        setFamily(fam)
+        setForm({ ...BLANK, paid_by: fam[0] ?? '', date: today() })
+      })
       setError('')
     }
   }, [isOpen])
@@ -87,9 +91,12 @@ export default function AddExpenseDrawer({ isOpen, onClose, onSuccess }: Props) 
           value={form.paid_by}
           onChange={(e) => setForm({ ...form, paid_by: e.target.value })}
           className={`${inputCls} py-3 text-[16px] md:text-[14px]`}
+          required
         >
-          <option value="Husband">Husband</option>
-          <option value="Wife">Wife</option>
+          {family.length === 0 && <option value="">No family members configured</option>}
+          {family.map((m) => (
+            <option key={m} value={m}>{m}</option>
+          ))}
         </select>
       </div>
       <div>

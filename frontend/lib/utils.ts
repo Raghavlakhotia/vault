@@ -44,3 +44,20 @@ export function limitColor(amount: number): string {
   if (amount < 500) return 'text-amber-400'
   return 'text-green-400'
 }
+
+const PAID_BY_PALETTE = [
+  'bg-indigo-500/15 text-indigo-300',
+  'bg-pink-500/10 text-pink-400',
+  'bg-emerald-500/15 text-emerald-300',
+  'bg-amber-500/10 text-amber-400',
+  'bg-sky-500/15 text-sky-300',
+  'bg-violet-500/15 text-violet-300',
+]
+
+// Stable per-name palette pick: same name always gets the same color.
+export function paidByBadgeClass(name: string): string {
+  if (!name) return 'bg-white/[0.06] text-[#9ca3af]'
+  let hash = 0
+  for (let i = 0; i < name.length; i++) hash = (hash * 31 + name.charCodeAt(i)) | 0
+  return PAID_BY_PALETTE[Math.abs(hash) % PAID_BY_PALETTE.length]
+}

@@ -1,9 +1,8 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { ExpenseOut, api } from '@/lib/api'
 import { formatINR, formatDate } from '@/lib/utils'
-
-type Filter = 'All' | 'Husband' | 'Wife'
+import { paidByBadgeClass } from '@/lib/utils'
 
 interface Props {
   expenses: ExpenseOut[]
@@ -11,10 +10,16 @@ interface Props {
 }
 
 export default function ExpenseTable({ expenses, onDelete }: Props) {
-  const [filter, setFilter] = useState<Filter>('All')
+  const [family, setFamily] = useState<string[]>([])
+  const [filter, setFilter] = useState<string>('All')
   const [deletingId, setDeletingId] = useState<number | null>(null)
   const [deleteError, setDeleteError] = useState('')
 
+  useEffect(() => {
+    api.getFamily().then(setFamily).catch(() => setFamily([]))
+  }, [])
+
+  const filterOptions = ['All', ...family]
   const filtered = filter === 'All' ? expenses : expenses.filter((e) => e.paid_by === filter)
 
   async function handleDelete(id: number) {
@@ -32,8 +37,8 @@ export default function ExpenseTable({ expenses, onDelete }: Props) {
 
   return (
     <div>
-      <div className="flex items-center gap-1.5 mb-4">
-        {(['All', 'Husband', 'Wife'] as Filter[]).map((f) => (
+      <div className="flex items-center gap-1.5 mb-4 flex-wrap">
+        {filterOptions.map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}
@@ -89,11 +94,7 @@ export default function ExpenseTable({ expenses, onDelete }: Props) {
                   </td>
                   <td className="py-3 px-3.5 text-[#e4e6f0]">{e.description || '—'}</td>
                   <td className="py-3 px-3.5">
-                    <span className={`text-[10px] px-2 py-0.5 rounded-full ${
-                      e.paid_by === 'Husband'
-                        ? 'bg-indigo-500/15 text-indigo-300'
-                        : 'bg-pink-500/10 text-pink-400'
-                    }`}>
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full ${paidByBadgeClass(e.paid_by)}`}>
                       {e.paid_by}
                     </span>
                   </td>
