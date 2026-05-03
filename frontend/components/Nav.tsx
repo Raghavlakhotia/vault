@@ -9,10 +9,9 @@ import AddExpenseDrawer from '@/components/AddExpenseDrawer'
 const BUDGET_LINKS = [
   { href: '/', label: 'Dashboard' },
   { href: '/overview', label: 'Overview' },
-  { href: '/budgets/default', label: 'Default Budget' },
   { href: '/budgets', label: 'Budget Allocation' },
   { href: '/expenses', label: 'Expenses' },
-  { href: '/categories', label: 'Add Category' },
+  { href: '/preferences', label: 'My Preferences' },
 ]
 
 const WEALTH_LINKS = [
@@ -61,7 +60,7 @@ export default function Nav() {
   const isBudgetSection = !isWealthSection && !isLibrarySection
   const budgetActiveLabel = BUDGET_LINKS.find((l) => l.href === pathname)?.label ?? 'Budget'
   const wealthActiveLabel = WEALTH_LINKS.find((l) => l.href === pathname)?.label ?? 'Wealth'
-  const hideMonthSwitcher = pathname === '/categories' || pathname === '/overview' || pathname === '/budgets/default'
+  const hideMonthSwitcher = pathname === '/preferences' || pathname === '/overview'
 
   const currentPageLabel = isWealthSection ? wealthActiveLabel : isLibrarySection ? 'Library' : budgetActiveLabel
 
