@@ -395,6 +395,7 @@ export default function IncomePage() {
               amount={investment.amount}
               pct={investmentPct}
               color="indigo"
+              editable
               onChange={(v) => updateBucket('Investment', v)}
               expandable
               expanded={investmentExpanded}
@@ -406,17 +407,19 @@ export default function IncomePage() {
             />
             <BucketCard
               name="Need"
-              amount={need.amount}
+              amount={derivedNeed}
               pct={needPct}
               color="amber"
-              onChange={(v) => updateBucket('Need', v)}
+              editable={false}
+              subtitle={`From ${needCategories.length} Need categor${needCategories.length === 1 ? 'y' : 'ies'}`}
             />
             <BucketCard
               name="Want"
-              amount={want.amount}
+              amount={derivedWant}
               pct={wantPct}
               color="rose"
-              onChange={(v) => updateBucket('Want', v)}
+              editable={false}
+              subtitle={`From ${wantCategories.length} Want categor${wantCategories.length === 1 ? 'y' : 'ies'}`}
             />
           </div>
 
