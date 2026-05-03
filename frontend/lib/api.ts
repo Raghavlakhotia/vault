@@ -162,6 +162,13 @@ export const api = {
       body: JSON.stringify(body),
     }),
 
+  updateExpense: (id: number, body: ExpenseCreate) =>
+    request<ExpenseOut>(`/api/expenses/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    }),
+
   deleteExpense: (id: number) =>
     request<void>(`/api/expenses/${id}`, { method: 'DELETE' }),
 

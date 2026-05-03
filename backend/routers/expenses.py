@@ -51,6 +51,31 @@ def get_expense(expense_id: int, current_user: str = Depends(require_auth)):
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Expense not found.")
 
 
+@router.put("/{expense_id}", response_model=ExpenseOut)
+def update_expense(
+    expense_id: int,
+    body: ExpenseCreate,
+    current_user: str = Depends(require_auth),
+):
+    if body.category not in get_categories(current_user):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Category '{body.category}' not found.",
+        )
+    expenses = get_expenses(current_user)
+    for e in expenses:
+        if e["id"] == expense_id:
+            e["amount"]      = body.amount
+            e["category"]    = body.category
+            e["description"] = body.description or ""
+            e["paid_by"]     = body.paid_by
+            e["source"]      = body.source or ""
+            e["date"]        = body.date
+            save_expenses(current_user, expenses)
+            return _to_out(e)
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Expense not found.")
+
+
 @router.delete("/{expense_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_expense(expense_id: int, current_user: str = Depends(require_auth)):
     expenses = get_expenses(current_user)

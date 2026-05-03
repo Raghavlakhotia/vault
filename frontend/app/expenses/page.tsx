@@ -13,6 +13,7 @@ function ExpensesInner() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [editing, setEditing] = useState<ExpenseOut | null>(null)
 
   const fetchData = useCallback(async () => {
     setLoading(true)
@@ -47,10 +48,16 @@ function ExpensesInner() {
         <ExpenseTable
           expenses={expenses}
           onDelete={(id) => setExpenses((prev) => prev.filter((e) => e.id !== id))}
+          onEdit={(e) => setEditing(e)}
         />
       )}
 
-      <AddExpenseDrawer isOpen={drawerOpen} onClose={() => setDrawerOpen(false)} onSuccess={fetchData} />
+      <AddExpenseDrawer
+        isOpen={drawerOpen || editing !== null}
+        editing={editing}
+        onClose={() => { setDrawerOpen(false); setEditing(null) }}
+        onSuccess={fetchData}
+      />
     </main>
   )
 }

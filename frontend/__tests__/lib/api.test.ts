@@ -79,6 +79,25 @@ describe('URL construction', () => {
     expect(JSON.parse(init.body)).toEqual({ amount: 500, category: 'G', paid_by: 'me' })
   })
 
+  it('updateExpense sends PUT with full body', async () => {
+    mockFetch({
+      id: 7, amount: 800, category: 'Groceries', description: 'edited',
+      paid_by: 'Wife', source: 'Cash', date: '2026-04-22',
+    })
+    await api.updateExpense(7, {
+      amount: 800, category: 'Groceries', description: 'edited',
+      paid_by: 'Wife', source: 'Cash', date: '2026-04-22',
+    })
+    const [url, init] = (global.fetch as jest.Mock).mock.calls[0]
+    expect(url).toBe('http://localhost:8000/api/expenses/7')
+    expect(init.method).toBe('PUT')
+    expect(init.headers['Content-Type']).toBe('application/json')
+    expect(JSON.parse(init.body)).toEqual({
+      amount: 800, category: 'Groceries', description: 'edited',
+      paid_by: 'Wife', source: 'Cash', date: '2026-04-22',
+    })
+  })
+
   it('deleteExpense sends DELETE', async () => {
     ;(global.fetch as jest.Mock).mockResolvedValueOnce({
       ok: true, status: 204,

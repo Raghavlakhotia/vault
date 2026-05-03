@@ -19,6 +19,7 @@ function expense(over: Partial<ExpenseOut> = {}): ExpenseOut {
     category: 'Groceries',
     description: '',
     paid_by: 'Husband',
+    source: '',
     date: '2026-04-15',
     ...over,
   }
@@ -96,11 +97,45 @@ describe('ExpenseTable rendering', () => {
     expect(screen.getAllByText('—').length).toBeGreaterThan(0)
   })
 
+  it('renders dash for empty source', () => {
+    render(<ExpenseTable expenses={[expense({ source: '' })]} onDelete={() => {}} />)
+    expect(screen.getAllByText('—').length).toBeGreaterThan(0)
+  })
+
+  it('renders source value when present', () => {
+    render(<ExpenseTable
+      expenses={[expense({ source: 'Credit Card' })]}
+      onDelete={() => {}}
+    />)
+    expect(screen.getByText('Credit Card')).toBeInTheDocument()
+  })
+
   it('formats date as "D Mon"', () => {
     render(<ExpenseTable
       expenses={[expense({ date: '2026-04-22' })]}
       onDelete={() => {}}
     />)
     expect(screen.getByText('22 Apr')).toBeInTheDocument()
+  })
+})
+
+describe('ExpenseTable edit button', () => {
+  it('does NOT render an edit button when onEdit is not provided', () => {
+    render(<ExpenseTable expenses={[expense()]} onDelete={() => {}} />)
+    expect(screen.queryByLabelText('Edit expense')).not.toBeInTheDocument()
+  })
+
+  it('renders edit button and fires onEdit with the row when clicked', () => {
+    const onEdit = jest.fn()
+    const e = expense({ id: 42, amount: 555 })
+    render(
+      <ExpenseTable
+        expenses={[e]}
+        onDelete={() => {}}
+        onEdit={onEdit}
+      />,
+    )
+    fireEvent.click(screen.getByLabelText('Edit expense'))
+    expect(onEdit).toHaveBeenCalledWith(e)
   })
 })

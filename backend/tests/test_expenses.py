@@ -126,6 +126,61 @@ class TestGet:
         assert res.status_code == 404
 
 
+class TestUpdate:
+    def test_updates_all_editable_fields(self, client, auth_headers, with_categories):
+        client.post("/api/expenses/", headers=auth_headers, json=_expense(amount=100))
+        res = client.put(
+            "/api/expenses/1",
+            headers=auth_headers,
+            json={
+                "category": "Rent",
+                "amount": 99999,
+                "description": "Updated note",
+                "paid_by": "Wife",
+                "source": "UPI",
+                "date": "2026-04-20",
+            },
+        )
+        assert res.status_code == 200
+        body = res.json()
+        assert body["id"] == 1
+        assert body["category"] == "Rent"
+        assert body["amount"] == 99999
+        assert body["description"] == "Updated note"
+        assert body["paid_by"] == "Wife"
+        assert body["source"] == "UPI"
+        assert body["date"] == "2026-04-20"
+
+    def test_unknown_id_404(self, client, auth_headers, with_categories):
+        res = client.put(
+            "/api/expenses/9999",
+            headers=auth_headers,
+            json=_expense(),
+        )
+        assert res.status_code == 404
+
+    def test_unknown_category_rejected(self, client, auth_headers, with_categories):
+        client.post("/api/expenses/", headers=auth_headers, json=_expense())
+        res = client.put(
+            "/api/expenses/1",
+            headers=auth_headers,
+            json={**_expense(), "category": "Mystery"},
+        )
+        assert res.status_code == 422
+
+    def test_persists_to_storage(self, client, auth_headers, with_categories):
+        client.post("/api/expenses/", headers=auth_headers, json=_expense(amount=100))
+        client.put(
+            "/api/expenses/1",
+            headers=auth_headers,
+            json={**_expense(amount=200), "description": "after edit"},
+        )
+        # GET returns the updated value
+        res = client.get("/api/expenses/1", headers=auth_headers)
+        assert res.json()["amount"] == 200
+        assert res.json()["description"] == "after edit"
+
+
 class TestDelete:
     def test_removes_expense(self, client, auth_headers, with_categories):
         client.post("/api/expenses/", headers=auth_headers, json=_expense(amount=11))

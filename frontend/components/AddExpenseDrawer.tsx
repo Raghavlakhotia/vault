@@ -1,11 +1,13 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { api, ExpenseCreate } from '@/lib/api'
+import { api, ExpenseCreate, ExpenseOut } from '@/lib/api'
 
 interface Props {
   isOpen: boolean
   onClose: () => void
   onSuccess: () => void
+  /** When provided, the drawer is in edit mode and updates this expense on submit. */
+  editing?: ExpenseOut | null
 }
 
 const today = () => new Date().toISOString().slice(0, 10)
@@ -14,7 +16,8 @@ const BLANK: ExpenseCreate = { amount: 0, category: '', description: '', paid_by
 const inputCls = 'w-full bg-[#1a1d27] border border-white/[0.07] rounded-lg px-3 text-[#e4e6f0] focus:outline-none focus:border-indigo-500/50'
 const labelCls = 'block text-[11px] text-[#6b7280] uppercase tracking-wider mb-1.5'
 
-export default function AddExpenseDrawer({ isOpen, onClose, onSuccess }: Props) {
+export default function AddExpenseDrawer({ isOpen, onClose, onSuccess, editing }: Props) {
+  const isEdit = !!editing
   const [categories, setCategories] = useState<string[]>([])
   const [family, setFamily] = useState<string[]>([])
   const [sources, setSources] = useState<string[]>([])
@@ -32,16 +35,27 @@ export default function AddExpenseDrawer({ isOpen, onClose, onSuccess }: Props) 
         setCategories(cats)
         setFamily(fam)
         setSources(srcs)
-        setForm({
-          ...BLANK,
-          paid_by: fam[0] ?? '',
-          source: srcs[0] ?? '',
-          date: today(),
-        })
+        if (editing) {
+          setForm({
+            amount:      editing.amount,
+            category:    editing.category,
+            description: editing.description,
+            paid_by:     editing.paid_by,
+            source:      editing.source ?? '',
+            date:        editing.date,
+          })
+        } else {
+          setForm({
+            ...BLANK,
+            paid_by: fam[0] ?? '',
+            source:  srcs[0] ?? '',
+            date:    today(),
+          })
+        }
       })
       setError('')
     }
-  }, [isOpen])
+  }, [isOpen, editing])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -50,11 +64,15 @@ export default function AddExpenseDrawer({ isOpen, onClose, onSuccess }: Props) 
     setSaving(true)
     setError('')
     try {
-      await api.createExpense(form)
+      if (isEdit && editing) {
+        await api.updateExpense(editing.id, form)
+      } else {
+        await api.createExpense(form)
+      }
       onSuccess()
       onClose()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to add expense')
+      setError(err instanceof Error ? err.message : isEdit ? 'Failed to update expense' : 'Failed to add expense')
     } finally {
       setSaving(false)
     }
@@ -137,7 +155,7 @@ export default function AddExpenseDrawer({ isOpen, onClose, onSuccess }: Props) 
         type="submit" disabled={saving}
         className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-semibold py-3.5 md:py-2.5 text-[15px] md:text-[14px] rounded-lg transition-colors"
       >
-        {saving ? 'Saving…' : 'Add Expense'}
+        {saving ? 'Saving…' : isEdit ? 'Save Changes' : 'Add Expense'}
       </button>
     </form>
   )
@@ -151,7 +169,7 @@ export default function AddExpenseDrawer({ isOpen, onClose, onSuccess }: Props) 
       <div className="hidden md:flex absolute inset-0 items-center justify-center">
         <div className="relative bg-[#13161f] border border-white/[0.1] rounded-2xl shadow-2xl w-full max-w-md mx-4 flex flex-col max-h-[90vh]">
           <div className="flex justify-between items-center px-6 py-4 border-b border-white/[0.07]">
-            <h2 className="text-[#e4e6f0] font-semibold text-[15px]">Add Expense</h2>
+            <h2 className="text-[#e4e6f0] font-semibold text-[15px]">{isEdit ? 'Edit Expense' : 'Add Expense'}</h2>
             <button onClick={onClose} className="text-[#6b7280] hover:text-[#9ca3af] text-2xl leading-none" aria-label="Close">×</button>
           </div>
           <div className="overflow-y-auto px-6 py-5">{fields}</div>
@@ -164,7 +182,7 @@ export default function AddExpenseDrawer({ isOpen, onClose, onSuccess }: Props) 
           <div className="w-10 h-1 rounded-full bg-white/20" />
         </div>
         <div className="flex justify-between items-center px-5 py-3 border-b border-white/[0.07] flex-shrink-0">
-          <h2 className="text-[#e4e6f0] font-semibold text-[16px]">Add Expense</h2>
+          <h2 className="text-[#e4e6f0] font-semibold text-[16px]">{isEdit ? 'Edit Expense' : 'Add Expense'}</h2>
           <button onClick={onClose} className="text-[#6b7280] hover:text-[#9ca3af] text-2xl leading-none" aria-label="Close">×</button>
         </div>
         <div className="overflow-y-auto px-5 pt-5 pb-8">{fields}</div>

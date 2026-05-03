@@ -7,9 +7,10 @@ import { paidByBadgeClass } from '@/lib/utils'
 interface Props {
   expenses: ExpenseOut[]
   onDelete: (id: number) => void
+  onEdit?: (expense: ExpenseOut) => void
 }
 
-export default function ExpenseTable({ expenses, onDelete }: Props) {
+export default function ExpenseTable({ expenses, onDelete, onEdit }: Props) {
   const [family, setFamily] = useState<string[]>([])
   const [filter, setFilter] = useState<string>('All')
   const [deletingId, setDeletingId] = useState<number | null>(null)
@@ -101,19 +102,34 @@ export default function ExpenseTable({ expenses, onDelete }: Props) {
                   <td className="py-3 px-3.5 text-[#9ca3af]">{e.source || '—'}</td>
                   <td className="py-3 px-3.5 text-right text-red-400 font-semibold">{formatINR(e.amount)}</td>
                   <td className="py-3 px-3.5 text-right">
-                    <button
-                      onClick={() => handleDelete(e.id)}
-                      disabled={deletingId === e.id}
-                      aria-label="Delete expense"
-                      className="text-[#4b5563] hover:text-red-400 transition-colors disabled:opacity-50"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="3 6 5 6 21 6"/>
-                        <path d="M19 6l-1 14H6L5 6"/>
-                        <path d="M10 11v6M14 11v6"/>
-                        <path d="M9 6V4h6v2"/>
-                      </svg>
-                    </button>
+                    <div className="flex items-center justify-end gap-3">
+                      {onEdit && (
+                        <button
+                          onClick={() => onEdit(e)}
+                          disabled={deletingId === e.id}
+                          aria-label="Edit expense"
+                          className="text-[#4b5563] hover:text-indigo-400 transition-colors disabled:opacity-50"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M12 20h9" />
+                            <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
+                          </svg>
+                        </button>
+                      )}
+                      <button
+                        onClick={() => handleDelete(e.id)}
+                        disabled={deletingId === e.id}
+                        aria-label="Delete expense"
+                        className="text-[#4b5563] hover:text-red-400 transition-colors disabled:opacity-50"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="3 6 5 6 21 6"/>
+                          <path d="M19 6l-1 14H6L5 6"/>
+                          <path d="M10 11v6M14 11v6"/>
+                          <path d="M9 6V4h6v2"/>
+                        </svg>
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
