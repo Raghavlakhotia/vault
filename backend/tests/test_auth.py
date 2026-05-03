@@ -147,6 +147,7 @@ class TestProtectedEndpoints:
         ("GET", "/api/library/"),
         ("GET", "/api/family/"),
         ("GET", "/api/sources/"),
+        ("GET", "/api/income/"),
     ]
 
     @pytest.mark.parametrize("method,path", PROTECTED)

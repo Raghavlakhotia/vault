@@ -57,12 +57,13 @@ export default function Nav() {
 
   const isWealthSection = pathname.startsWith('/wealth')
   const isLibrarySection = pathname.startsWith('/library')
-  const isBudgetSection = !isWealthSection && !isLibrarySection
+  const isIncomeSection = pathname === '/income'
+  const isBudgetSection = !isWealthSection && !isLibrarySection && !isIncomeSection
   const budgetActiveLabel = BUDGET_LINKS.find((l) => l.href === pathname)?.label ?? 'Budget'
   const wealthActiveLabel = WEALTH_LINKS.find((l) => l.href === pathname)?.label ?? 'Wealth'
-  const hideMonthSwitcher = pathname === '/preferences' || pathname === '/overview'
+  const hideMonthSwitcher = pathname === '/preferences' || pathname === '/overview' || pathname === '/income'
 
-  const currentPageLabel = isWealthSection ? wealthActiveLabel : isLibrarySection ? 'Library' : budgetActiveLabel
+  const currentPageLabel = isWealthSection ? wealthActiveLabel : isLibrarySection ? 'Library' : isIncomeSection ? 'Income' : budgetActiveLabel
 
   const MonthSwitcher = ({ compact }: { compact?: boolean }) => (
     <div className={`flex items-center ${compact ? 'gap-1' : 'gap-2'}`}>
@@ -180,6 +181,18 @@ export default function Nav() {
           >
             Library
           </Link>
+
+          {/* Income link */}
+          <Link
+            href="/income"
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-md text-[13px] transition-colors ${
+              isIncomeSection
+                ? 'text-emerald-300 bg-emerald-500/15 hover:bg-emerald-500/25'
+                : 'text-[#6b7280] hover:text-[#9ca3af] hover:bg-white/[0.04]'
+            }`}
+          >
+            Income
+          </Link>
         </div>
 
         {!hideMonthSwitcher && <MonthSwitcher />}
@@ -277,6 +290,21 @@ export default function Nav() {
               <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
             </svg>
             <span className="text-[10px] font-medium">Library</span>
+          </Link>
+
+          {/* Income */}
+          <Link
+            href="/income"
+            className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl ${
+              isIncomeSection ? 'text-indigo-400' : 'text-[#4b5563]'
+            }`}
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" />
+              <path d="M3 5v14a2 2 0 0 0 2 2h16v-5" />
+              <path d="M21 12h-3a2 2 0 0 0 0 4h3" />
+            </svg>
+            <span className="text-[10px] font-medium">Income</span>
           </Link>
 
         </div>

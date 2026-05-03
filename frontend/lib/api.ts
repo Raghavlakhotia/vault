@@ -90,6 +90,21 @@ export interface BookMeta {
   order: number
 }
 
+export interface IncomeSubAllocation {
+  name: string
+  amount: number
+}
+
+export interface IncomeAllocation {
+  amount: number
+  subs: IncomeSubAllocation[]
+}
+
+export interface IncomeConfig {
+  in_hand: number
+  allocations: Record<string, IncomeAllocation>
+}
+
 export interface WealthDashboardResponse {
   month_year: string
   rows: WealthRow[]
@@ -230,6 +245,16 @@ export const api = {
 
   deleteSource: (name: string) =>
     request<string[]>(`/api/sources/${name}`, { method: 'DELETE' }),
+
+  getIncome: () =>
+    request<IncomeConfig>('/api/income/'),
+
+  setIncome: (body: IncomeConfig) =>
+    request<IncomeConfig>('/api/income/', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    }),
 
   getAssets: () =>
     request<AssetOut[]>('/api/assets/'),

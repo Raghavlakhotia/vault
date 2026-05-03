@@ -173,3 +173,18 @@ class RetirementScenario(BaseModel):
 class RetirementResponse(BaseModel):
     scenarios: list[RetirementScenario]
     years_to_target: int
+
+
+# ── Income ─────────────────────────────────────────────────────────────────────
+
+class IncomeSubAllocation(BaseModel):
+    name: str = Field(min_length=1, max_length=64)
+    amount: float = Field(ge=0)
+
+class IncomeAllocation(BaseModel):
+    amount: float = Field(ge=0)
+    subs: list[IncomeSubAllocation] = []
+
+class IncomeConfig(BaseModel):
+    in_hand: float = Field(ge=0)
+    allocations: dict[str, IncomeAllocation]

@@ -259,6 +259,28 @@ describe('URL construction', () => {
     expect(delInit.method).toBe('DELETE')
   })
 
+  it('getIncome and setIncome', async () => {
+    const cfg = { in_hand: 100000, allocations: {
+      Investment: { amount: 30000, subs: [{ name: 'MF1', amount: 30000 }] },
+      Need: { amount: 50000, subs: [] },
+      Want: { amount: 20000, subs: [] },
+    }}
+
+    mockFetch(cfg)
+    await api.getIncome()
+    expect((global.fetch as jest.Mock).mock.calls[0][0]).toBe(
+      'http://localhost:8000/api/income/',
+    )
+
+    ;(global.fetch as jest.Mock).mockClear()
+    mockFetch(cfg)
+    await api.setIncome(cfg)
+    const [putUrl, putInit] = (global.fetch as jest.Mock).mock.calls[0]
+    expect(putUrl).toBe('http://localhost:8000/api/income/')
+    expect(putInit.method).toBe('PUT')
+    expect(JSON.parse(putInit.body)).toEqual(cfg)
+  })
+
   it('listBooks hits /api/library/', async () => {
     mockFetch([])
     await api.listBooks()
