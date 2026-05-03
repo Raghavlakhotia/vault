@@ -66,11 +66,11 @@ export default function ExpenseTable({ expenses, onDelete }: Props) {
           <table className="w-full border-collapse text-[13px]">
             <thead>
               <tr className="bg-[#13161f] border-b border-white/[0.07]">
-                {['Date', 'Category', 'Description', 'Paid By', 'Amount', ''].map((h, i) => (
+                {['Date', 'Category', 'Description', 'Paid By', 'Source', 'Amount', ''].map((h, i) => (
                   <th
                     key={i}
                     className={`py-2.5 px-3.5 text-[11px] font-medium text-[#6b7280] uppercase tracking-wider ${
-                      i === 4 ? 'text-right' : 'text-left'
+                      i === 5 ? 'text-right' : 'text-left'
                     }`}
                   >
                     {h}
@@ -98,6 +98,7 @@ export default function ExpenseTable({ expenses, onDelete }: Props) {
                       {e.paid_by}
                     </span>
                   </td>
+                  <td className="py-3 px-3.5 text-[#9ca3af]">{e.source || '—'}</td>
                   <td className="py-3 px-3.5 text-right text-red-400 font-semibold">{formatINR(e.amount)}</td>
                   <td className="py-3 px-3.5 text-right">
                     <button

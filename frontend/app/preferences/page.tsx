@@ -16,6 +16,7 @@ export default function PreferencesPage() {
   const [categories, setCategories] = useState<string[]>([])
   const [defaultValues, setDefaultValues] = useState<Record<string, string>>({})
   const [family, setFamily] = useState<string[]>([])
+  const [sources, setSources] = useState<string[]>([])
 
   // Add inputs
   const [newCategory, setNewCategory] = useState('')
@@ -25,6 +26,11 @@ export default function PreferencesPage() {
   const [newMember, setNewMember] = useState('')
   const [addingMember, setAddingMember] = useState(false)
   const [familyError, setFamilyError] = useState('')
+
+  const [newSource, setNewSource] = useState('')
+  const [addingSource, setAddingSource] = useState(false)
+  const [sourceError, setSourceError] = useState('')
+  const [deletingSource, setDeletingSource] = useState<string | null>(null)
 
   // Delete state — we use a confirm dialog for categories (cascade danger)
   // and direct delete for family (no cascade).
@@ -42,13 +48,15 @@ export default function PreferencesPage() {
   useEffect(() => {
     async function load() {
       try {
-        const [cats, defaults, fam] = await Promise.all([
+        const [cats, defaults, fam, srcs] = await Promise.all([
           api.getCategories(),
           api.getDefaultBudget(),
           api.getFamily(),
+          api.getSources(),
         ])
         setCategories(cats)
         setFamily(fam)
+        setSources(srcs)
         const init: Record<string, string> = {}
         cats.forEach((c) => { init[c] = defaults.budgets[c]?.toString() ?? '' })
         setDefaultValues(init)
@@ -95,6 +103,38 @@ export default function PreferencesPage() {
       setFamilyError(err instanceof Error ? err.message : 'Failed to delete family member')
     } finally {
       setDeletingMember(null)
+    }
+  }
+
+  // ── Source handlers ────────────────────────────────────────────────────────
+
+  async function handleAddSource(e: React.FormEvent) {
+    e.preventDefault()
+    const name = newSource.trim()
+    if (!name) return
+    setAddingSource(true)
+    setSourceError('')
+    try {
+      const updated = await api.createSource(name)
+      setSources(updated)
+      setNewSource('')
+    } catch (err) {
+      setSourceError(err instanceof Error ? err.message : 'Failed to add source')
+    } finally {
+      setAddingSource(false)
+    }
+  }
+
+  async function handleDeleteSource(name: string) {
+    setDeletingSource(name)
+    setSourceError('')
+    try {
+      const updated = await api.deleteSource(name)
+      setSources(updated)
+    } catch (err) {
+      setSourceError(err instanceof Error ? err.message : 'Failed to delete source')
+    } finally {
+      setDeletingSource(null)
     }
   }
 
@@ -215,6 +255,60 @@ export default function PreferencesPage() {
                       onClick={() => handleDeleteMember(m)}
                       disabled={deletingMember === m}
                       aria-label={`Delete ${m}`}
+                      className="text-[#4b5563] hover:text-red-400 transition-colors disabled:opacity-50"
+                    >
+                      {trashIcon}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+
+          {/* ── Sources ──────────────────────────────────────────────── */}
+          <section className="mb-10">
+            <h2 className="text-[#e4e6f0] font-semibold text-[14px] mb-1">Sources</h2>
+            <p className="text-[#6b7280] text-[12px] mb-3">
+              How an expense is paid — Credit Card, Cash, UPI, etc. Selectable when adding an expense.
+            </p>
+
+            <form onSubmit={handleAddSource} className="flex gap-2 mb-3">
+              <input
+                type="text"
+                value={newSource}
+                onChange={(e) => setNewSource(e.target.value)}
+                placeholder="Source name"
+                disabled={addingSource}
+                className="flex-1 bg-[#0f1117] border border-white/[0.07] rounded-lg px-3 py-2 text-[#e4e6f0] text-[13px] focus:outline-none focus:border-indigo-500/50 disabled:opacity-50"
+              />
+              <button
+                type="submit"
+                disabled={addingSource || !newSource.trim()}
+                className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-[13px] font-medium px-5 py-2 rounded-lg transition-colors"
+              >
+                {addingSource ? 'Adding...' : 'Add Source'}
+              </button>
+            </form>
+            {sourceError && <p className="text-red-400 text-[12px] mb-3">{sourceError}</p>}
+
+            {sources.length === 0 ? (
+              <p className="text-[#6b7280] text-[13px]">
+                No sources yet. Add one above.
+              </p>
+            ) : (
+              <ul className="bg-[#1a1d27] border border-white/[0.07] rounded-xl divide-y divide-white/[0.04]">
+                {sources.map((s) => (
+                  <li
+                    key={s}
+                    className={`flex items-center justify-between px-3.5 py-3 transition-colors ${
+                      deletingSource === s ? 'opacity-40 bg-red-500/5' : ''
+                    }`}
+                  >
+                    <span className="text-[#e4e6f0] text-[13px] font-medium">{s}</span>
+                    <button
+                      onClick={() => handleDeleteSource(s)}
+                      disabled={deletingSource === s}
+                      aria-label={`Delete ${s}`}
                       className="text-[#4b5563] hover:text-red-400 transition-colors disabled:opacity-50"
                     >
                       {trashIcon}

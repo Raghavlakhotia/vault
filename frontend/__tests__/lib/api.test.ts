@@ -194,6 +194,29 @@ describe('URL construction', () => {
     )
   })
 
+  it('getSources, createSource, deleteSource', async () => {
+    mockFetch(['Credit Card', 'Cash'])
+    await api.getSources()
+    expect((global.fetch as jest.Mock).mock.calls[0][0]).toBe(
+      'http://localhost:8000/api/sources/',
+    )
+
+    ;(global.fetch as jest.Mock).mockClear()
+    mockFetch(['Credit Card', 'Cash', 'UPI'], 201)
+    await api.createSource('UPI')
+    const [postUrl, postInit] = (global.fetch as jest.Mock).mock.calls[0]
+    expect(postUrl).toBe('http://localhost:8000/api/sources/')
+    expect(postInit.method).toBe('POST')
+    expect(JSON.parse(postInit.body)).toEqual({ name: 'UPI' })
+
+    ;(global.fetch as jest.Mock).mockClear()
+    mockFetch(['Credit Card'])
+    await api.deleteSource('Cash')
+    const [delUrl, delInit] = (global.fetch as jest.Mock).mock.calls[0]
+    expect(delUrl).toBe('http://localhost:8000/api/sources/Cash')
+    expect(delInit.method).toBe('DELETE')
+  })
+
   it('getFamily, createFamilyMember, deleteFamilyMember', async () => {
     mockFetch(['Husband', 'Wife'])
     await api.getFamily()

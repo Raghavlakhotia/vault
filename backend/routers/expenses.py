@@ -7,12 +7,21 @@ from dependencies import require_auth
 router = APIRouter()
 
 
+def _to_out(e: dict) -> ExpenseOut:
+    """Build an ExpenseOut, defaulting fields that may be missing on legacy rows."""
+    return ExpenseOut(**{
+        **e,
+        "description": e.get("description", ""),
+        "source":      e.get("source", ""),
+    })
+
+
 @router.get("/", response_model=list[ExpenseOut])
 def list_expenses(month: Optional[str] = Query(None), current_user: str = Depends(require_auth)):
     expenses = get_expenses(current_user)
     if month:
         expenses = [e for e in expenses if e["date"][:7] == month]
-    return [ExpenseOut(**{**e, "description": e.get("description", "")}) for e in expenses]
+    return [_to_out(e) for e in expenses]
 
 
 @router.post("/", response_model=ExpenseOut, status_code=status.HTTP_201_CREATED)
@@ -26,18 +35,19 @@ def create_expense(body: ExpenseCreate, current_user: str = Depends(require_auth
         "category":    body.category,
         "description": body.description or "",
         "paid_by":     body.paid_by,
+        "source":      body.source or "",
         "date":        body.date,
     }
     expenses.append(record)
     save_expenses(current_user, expenses)
-    return ExpenseOut(**record)
+    return _to_out(record)
 
 
 @router.get("/{expense_id}", response_model=ExpenseOut)
 def get_expense(expense_id: int, current_user: str = Depends(require_auth)):
     for e in get_expenses(current_user):
         if e["id"] == expense_id:
-            return ExpenseOut(**{**e, "description": e.get("description", "")})
+            return _to_out(e)
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Expense not found.")
 
 

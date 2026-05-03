@@ -25,6 +25,7 @@ export interface ExpenseOut {
   category: string
   description: string
   paid_by: string
+  source: string
   date: string
 }
 
@@ -33,6 +34,7 @@ export interface ExpenseCreate {
   category: string
   description?: string
   paid_by: string
+  source?: string
   date?: string
 }
 
@@ -208,6 +210,19 @@ export const api = {
 
   deleteFamilyMember: (name: string) =>
     request<string[]>(`/api/family/${name}`, { method: 'DELETE' }),
+
+  getSources: () =>
+    request<string[]>('/api/sources/'),
+
+  createSource: (name: string) =>
+    request<string[]>('/api/sources/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name }),
+    }),
+
+  deleteSource: (name: string) =>
+    request<string[]>(`/api/sources/${name}`, { method: 'DELETE' }),
 
   getAssets: () =>
     request<AssetOut[]>('/api/assets/'),

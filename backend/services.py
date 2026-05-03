@@ -79,7 +79,11 @@ def build_dashboard(month: str, username: str) -> DashboardResponse:
         matrix=matrix,
         totals=totals,
         expenses=[
-            ExpenseOut(**{**e, "description": e.get("description", "")})
+            ExpenseOut(**{
+                **e,
+                "description": e.get("description", ""),
+                "source": e.get("source", ""),
+            })
             for e in sorted(curr_rows, key=lambda x: x["date"])
         ],
     )

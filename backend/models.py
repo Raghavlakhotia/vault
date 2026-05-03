@@ -18,6 +18,12 @@ class FamilyMemberCreate(BaseModel):
     name: str = Field(min_length=1, max_length=64)
 
 
+# ── Sources ────────────────────────────────────────────────────────────────────
+
+class SourceCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=64)
+
+
 # ── Budgets ────────────────────────────────────────────────────────────────────
 
 class BudgetEntry(BaseModel):
@@ -40,6 +46,7 @@ class ExpenseCreate(BaseModel):
     category: str = Field(min_length=1)
     description: Optional[str] = ""
     paid_by: str  = Field(min_length=1)
+    source: Optional[str] = ""
     date: Optional[str] = None  # defaults to today (YYYY-MM-DD)
 
     @field_validator("date", mode="before")
@@ -60,6 +67,7 @@ class ExpenseOut(BaseModel):
     category: str
     description: str
     paid_by: str
+    source: str = ""
     date: str
 
 

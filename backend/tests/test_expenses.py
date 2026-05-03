@@ -56,6 +56,38 @@ class TestCreate:
         assert res.status_code == 201
         assert res.json()["description"] == ""
 
+    def test_source_defaults_to_empty(
+        self, client, auth_headers, with_categories
+    ):
+        res = client.post(
+            "/api/expenses/",
+            headers=auth_headers,
+            json={
+                "category": "Groceries", "amount": 50,
+                "date": "2026-04-01", "paid_by": "me",
+            },
+        )
+        assert res.status_code == 201
+        assert res.json()["source"] == ""
+
+    def test_source_round_trips(self, client, auth_headers, with_categories):
+        res = client.post(
+            "/api/expenses/",
+            headers=auth_headers,
+            json={
+                "category": "Groceries", "amount": 50,
+                "date": "2026-04-01", "paid_by": "me",
+                "source": "Credit Card",
+            },
+        )
+        assert res.status_code == 201
+        assert res.json()["source"] == "Credit Card"
+        # Source survives a list and a get
+        listed = client.get("/api/expenses/", headers=auth_headers).json()
+        assert listed[0]["source"] == "Credit Card"
+        single = client.get("/api/expenses/1", headers=auth_headers).json()
+        assert single["source"] == "Credit Card"
+
 
 class TestList:
     def test_returns_all_when_no_month_filter(

@@ -15,6 +15,7 @@ _DEFAULTS: list[tuple[str, Any]] = [
     ("assets.json",     []),
     ("holdings.json",   []),
     ("family.json",     ["Husband", "Wife"]),
+    ("sources.json",    ["Credit Card", "Cash"]),
 ]
 
 
@@ -95,6 +96,13 @@ def get_family(username: str) -> list[str]:
 
 def save_family(username: str, members: list[str]) -> None:
     _save(username, "family.json", members)
+
+
+def get_sources(username: str) -> list[str]:
+    return _load(username, "sources.json")
+
+def save_sources(username: str, sources: list[str]) -> None:
+    _save(username, "sources.json", sources)
 
 
 # ── Users (not per-user, stored directly in data/) ────────────────────────────
