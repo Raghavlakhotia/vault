@@ -16,13 +16,26 @@ class TestPerUserDirs:
     def test_users_have_isolated_files(self, data_dir):
         storage.save_categories("alice", ["A1", "A2"])
         storage.save_categories("bob", ["B1"])
-        assert storage.get_categories("alice") == ["A1", "A2"]
-        assert storage.get_categories("bob") == ["B1"]
-        # Files exist in different directories
+        assert storage.get_categories("alice") == [
+            {"name": "A1", "kind": "Need"},
+            {"name": "A2", "kind": "Need"},
+        ]
+        assert storage.get_categories("bob") == [{"name": "B1", "kind": "Need"}]
+        # Files exist in different directories and are normalized dicts on disk
         a = json.loads((data_dir / "alice" / "categories.json").read_text())
         b = json.loads((data_dir / "bob" / "categories.json").read_text())
-        assert a == ["A1", "A2"]
-        assert b == ["B1"]
+        assert a == [{"name": "A1", "kind": "Need"}, {"name": "A2", "kind": "Need"}]
+        assert b == [{"name": "B1", "kind": "Need"}]
+
+    def test_legacy_string_categories_auto_migrate(self, data_dir):
+        user = "alice"
+        storage._user_dir(user)  # ensure dir exists
+        (data_dir / user / "categories.json").write_text(json.dumps(["X", "Y"]))
+        cats = storage.get_categories(user)
+        assert cats == [
+            {"name": "X", "kind": "Need"},
+            {"name": "Y", "kind": "Need"},
+        ]
 
     def test_save_then_load_preserves_data(self, data_dir):
         storage.save_budgets("alice", {"2026-04": {"Groceries": 5000.0}})
@@ -81,4 +94,4 @@ class TestLegacyMigration:
         storage.save_categories("lakhotia", ["A"])
         storage.migrate_legacy_data()
         storage.migrate_legacy_data()
-        assert storage.get_categories("lakhotia") == ["A"]
+        assert storage.get_categories("lakhotia") == [{"name": "A", "kind": "Need"}]

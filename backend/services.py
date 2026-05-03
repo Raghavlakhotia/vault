@@ -16,7 +16,7 @@ def next_month(m: str) -> str:
 
 def build_dashboard(month: str, username: str) -> DashboardResponse:
     prev = prev_month(month)
-    cats     = get_categories(username)
+    cats     = [c["name"] for c in get_categories(username)]
     budgets  = get_budgets(username)
     expenses = get_expenses(username)
 

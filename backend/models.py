@@ -1,15 +1,25 @@
 """Pydantic request/response models."""
 
 from datetime import date
-from typing import Optional
+from typing import Literal, Optional
 from pydantic import BaseModel, Field, field_validator
 import re
 
 
 # ── Categories ─────────────────────────────────────────────────────────────────
 
+CategoryKind = Literal["Need", "Want"]
+
 class CategoryCreate(BaseModel):
     name: str = Field(min_length=1, max_length=64)
+    kind: CategoryKind = "Need"
+
+class CategoryOut(BaseModel):
+    name: str
+    kind: CategoryKind
+
+class CategoryKindUpdate(BaseModel):
+    kind: CategoryKind
 
 
 # ── Family ─────────────────────────────────────────────────────────────────────

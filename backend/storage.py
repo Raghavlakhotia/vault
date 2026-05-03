@@ -64,11 +64,19 @@ def migrate_legacy_data() -> None:
 
 # ── Per-user public helpers ────────────────────────────────────────────────────
 
-def get_categories(username: str) -> list[str]:
-    return _load(username, "categories.json")
+def _normalize_category(c) -> dict:
+    if isinstance(c, str):
+        return {"name": c, "kind": "Need"}
+    # Backstop: ensure kind is set even if missing
+    return {"name": c["name"], "kind": c.get("kind") or "Need"}
 
-def save_categories(username: str, cats: list[str]) -> None:
-    _save(username, "categories.json", cats)
+
+def get_categories(username: str) -> list[dict]:
+    raw = _load(username, "categories.json")
+    return [_normalize_category(c) for c in raw]
+
+def save_categories(username: str, cats: list) -> None:
+    _save(username, "categories.json", [_normalize_category(c) for c in cats])
 
 
 def get_budgets(username: str) -> dict[str, dict[str, float]]:

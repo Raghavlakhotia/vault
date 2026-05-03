@@ -118,16 +118,32 @@ describe('URL construction', () => {
     )
   })
 
-  it('createCategory sends POST with name body', async () => {
-    mockFetch(['A', 'B'], 201)
+  it('createCategory sends POST with name + default Need kind', async () => {
+    mockFetch([{ name: 'A', kind: 'Need' }, { name: 'B', kind: 'Need' }], 201)
     await api.createCategory('B')
     const [, init] = (global.fetch as jest.Mock).mock.calls[0]
     expect(init.method).toBe('POST')
-    expect(JSON.parse(init.body)).toEqual({ name: 'B' })
+    expect(JSON.parse(init.body)).toEqual({ name: 'B', kind: 'Need' })
+  })
+
+  it('createCategory with explicit Want kind', async () => {
+    mockFetch([{ name: 'X', kind: 'Want' }], 201)
+    await api.createCategory('X', 'Want')
+    const [, init] = (global.fetch as jest.Mock).mock.calls[0]
+    expect(JSON.parse(init.body)).toEqual({ name: 'X', kind: 'Want' })
+  })
+
+  it('updateCategoryKind sends PUT with kind body', async () => {
+    mockFetch([{ name: 'X', kind: 'Want' }])
+    await api.updateCategoryKind('X', 'Want')
+    const [url, init] = (global.fetch as jest.Mock).mock.calls[0]
+    expect(url).toBe('http://localhost:8000/api/categories/X')
+    expect(init.method).toBe('PUT')
+    expect(JSON.parse(init.body)).toEqual({ kind: 'Want' })
   })
 
   it('deleteCategory hits /api/categories/{name}', async () => {
-    mockFetch(['A'])
+    mockFetch([{ name: 'A', kind: 'Need' }])
     await api.deleteCategory('B')
     const [url, init] = (global.fetch as jest.Mock).mock.calls[0]
     expect(url).toBe('http://localhost:8000/api/categories/B')

@@ -32,7 +32,7 @@ export default function AddExpenseDrawer({ isOpen, onClose, onSuccess, editing }
         api.getFamily(),
         api.getSources(),
       ]).then(([cats, fam, srcs]) => {
-        setCategories(cats)
+        setCategories(cats.map((c) => c.name))
         setFamily(fam)
         setSources(srcs)
         if (editing) {

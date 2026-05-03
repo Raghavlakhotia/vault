@@ -26,7 +26,7 @@ def list_expenses(month: Optional[str] = Query(None), current_user: str = Depend
 
 @router.post("/", response_model=ExpenseOut, status_code=status.HTTP_201_CREATED)
 def create_expense(body: ExpenseCreate, current_user: str = Depends(require_auth)):
-    if body.category not in get_categories(current_user):
+    if body.category not in {c["name"] for c in get_categories(current_user)}:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=f"Category '{body.category}' not found.")
     expenses = get_expenses(current_user)
     record = {
@@ -57,7 +57,7 @@ def update_expense(
     body: ExpenseCreate,
     current_user: str = Depends(require_auth),
 ):
-    if body.category not in get_categories(current_user):
+    if body.category not in {c["name"] for c in get_categories(current_user)}:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=f"Category '{body.category}' not found.",

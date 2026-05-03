@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { api, IncomeConfig, IncomeAllocation, IncomeSubAllocation } from '@/lib/api'
+import { api, IncomeConfig, IncomeAllocation, IncomeSubAllocation, Category } from '@/lib/api'
 
 // Static color class maps to avoid dynamic Tailwind class purging
 const COLOR_CLASSES = {
@@ -31,7 +31,8 @@ interface BucketCardProps {
   amount: number
   pct: number
   color: ColorKey
-  onChange: (amount: number) => void
+  editable: boolean
+  onChange?: (amount: number) => void
   expandable?: boolean
   expanded?: boolean
   onToggle?: () => void
@@ -39,6 +40,7 @@ interface BucketCardProps {
   onAddSub?: () => void
   onUpdateSub?: (idx: number, field: 'name' | 'amount', value: string | number) => void
   onDeleteSub?: (idx: number) => void
+  subtitle?: string
 }
 
 function BucketCard({
@@ -46,6 +48,7 @@ function BucketCard({
   amount,
   pct,
   color,
+  editable,
   onChange,
   expandable,
   expanded,
@@ -54,6 +57,7 @@ function BucketCard({
   onAddSub,
   onUpdateSub,
   onDeleteSub,
+  subtitle,
 }: BucketCardProps) {
   const cc = COLOR_CLASSES[color]
 
@@ -69,15 +73,24 @@ function BucketCard({
         </div>
         <div className="flex items-baseline gap-1.5 mb-3">
           <span className="text-[#9ca3af] text-[14px]">₹</span>
-          <input
-            type="number"
-            min="0"
-            value={amount || ''}
-            onChange={(e) => onChange(parseFloat(e.target.value) || 0)}
-            className="bg-transparent border-0 text-[#e4e6f0] text-[20px] font-semibold focus:outline-none w-full p-0"
-            placeholder="0"
-          />
+          {editable ? (
+            <input
+              type="number"
+              min="0"
+              value={amount || ''}
+              onChange={(e) => onChange?.(parseFloat(e.target.value) || 0)}
+              className="bg-transparent border-0 text-[#e4e6f0] text-[20px] font-semibold focus:outline-none w-full p-0"
+              placeholder="0"
+            />
+          ) : (
+            <span className="text-[#e4e6f0] text-[20px] font-semibold">
+              {amount.toLocaleString('en-IN')}
+            </span>
+          )}
         </div>
+        {subtitle && (
+          <p className="text-[10px] text-[#6b7280] mt-1">{subtitle}</p>
+        )}
         <div className="h-1 rounded-full bg-white/[0.05] overflow-hidden">
           <div
             className={`h-full ${cc.bar} transition-all duration-300`}
@@ -178,7 +191,9 @@ function BucketCard({
 }
 
 export default function IncomePage() {
-  const [config, setConfig] = useState<IncomeConfig | null>(null)
+  const [income, setIncome] = useState<IncomeConfig | null>(null)
+  const [categories, setCategories] = useState<Category[]>([])
+  const [defaultBudget, setDefaultBudget] = useState<Record<string, number>>({})
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -186,92 +201,111 @@ export default function IncomePage() {
   const [investmentExpanded, setInvestmentExpanded] = useState(true)
 
   useEffect(() => {
-    api
-      .getIncome()
-      .then(setConfig)
-      .catch(() => setError('Failed to load income config.'))
+    Promise.all([
+      api.getIncome(),
+      api.getCategories(),
+      api.getDefaultBudget(),
+    ]).then(([inc, cats, def]) => {
+      setIncome(inc)
+      setCategories(cats)
+      setDefaultBudget(def.budgets)
+    }).catch(() => setError('Failed to load income config.'))
       .finally(() => setLoading(false))
   }, [])
 
+  // Derived Need / Want totals from default budgets
+  const needCategories = categories.filter((c) => c.kind === 'Need')
+  const wantCategories = categories.filter((c) => c.kind === 'Want')
+  const derivedNeed = needCategories.reduce((s, c) => s + (defaultBudget[c.name] || 0), 0)
+  const derivedWant = wantCategories.reduce((s, c) => s + (defaultBudget[c.name] || 0), 0)
+
+  // Effective allocations: Investment is editable; Need and Want are derived
+  const effectiveAllocations = {
+    Investment: income?.allocations.Investment ?? { amount: 0, subs: [] },
+    Need: { amount: derivedNeed, subs: [] },
+    Want: { amount: derivedWant, subs: [] },
+  }
+
   // Derived working values
-  const inHand = config?.in_hand ?? 0
-  const investment: IncomeAllocation = config?.allocations.Investment ?? { amount: 0, subs: [] }
-  const need: IncomeAllocation = config?.allocations.Need ?? { amount: 0, subs: [] }
-  const want: IncomeAllocation = config?.allocations.Want ?? { amount: 0, subs: [] }
+  const inHand = income?.in_hand ?? 0
+  const investment: IncomeAllocation = effectiveAllocations.Investment
 
   // Computed real-time feedback
-  const totalAllocated = investment.amount + need.amount + want.amount
+  const totalAllocated = effectiveAllocations.Investment.amount + derivedNeed + derivedWant
   const pct = (amount: number, total: number) => (total > 0 ? (amount / total) * 100 : 0)
   const investmentPct = pct(investment.amount, inHand)
-  const needPct = pct(need.amount, inHand)
-  const wantPct = pct(want.amount, inHand)
+  const needPct = pct(derivedNeed, inHand)
+  const wantPct = pct(derivedWant, inHand)
   const unallocated = inHand - totalAllocated
   const mismatch: 'match' | 'under' | 'over' =
     Math.abs(unallocated) < 0.01 ? 'match' : unallocated > 0 ? 'under' : 'over'
 
   // Handlers — update local state only; Save persists
   function updateInHand(value: number) {
-    if (!config) return
-    setConfig({ ...config, in_hand: value })
+    if (!income) return
+    setIncome({ ...income, in_hand: value })
   }
 
-  function updateBucket(name: 'Investment' | 'Need' | 'Want', amount: number) {
-    if (!config) return
-    setConfig({
-      ...config,
+  function updateBucket(name: 'Investment', amount: number) {
+    if (!income) return
+    setIncome({
+      ...income,
       allocations: {
-        ...config.allocations,
-        [name]: { ...config.allocations[name], amount },
+        ...income.allocations,
+        [name]: { ...income.allocations[name], amount },
       },
     })
   }
 
   function addSub() {
-    if (!config) return
-    const inv = config.allocations.Investment
-    setConfig({
-      ...config,
+    if (!income) return
+    const inv = income.allocations.Investment
+    setIncome({
+      ...income,
       allocations: {
-        ...config.allocations,
+        ...income.allocations,
         Investment: { ...inv, subs: [...inv.subs, { name: '', amount: 0 }] },
       },
     })
   }
 
   function updateSub(idx: number, field: 'name' | 'amount', value: string | number) {
-    if (!config) return
-    const inv = config.allocations.Investment
+    if (!income) return
+    const inv = income.allocations.Investment
     const newSubs = inv.subs.map((s, i) =>
       i === idx ? { ...s, [field]: value } : s
     )
-    setConfig({
-      ...config,
+    setIncome({
+      ...income,
       allocations: {
-        ...config.allocations,
+        ...income.allocations,
         Investment: { ...inv, subs: newSubs },
       },
     })
   }
 
   function deleteSub(idx: number) {
-    if (!config) return
-    const inv = config.allocations.Investment
-    setConfig({
-      ...config,
+    if (!income) return
+    const inv = income.allocations.Investment
+    setIncome({
+      ...income,
       allocations: {
-        ...config.allocations,
+        ...income.allocations,
         Investment: { ...inv, subs: inv.subs.filter((_, i) => i !== idx) },
       },
     })
   }
 
   async function handleSave() {
-    if (!config) return
+    if (!income) return
     setSaving(true)
     setError('')
     setSaved(false)
     try {
-      await api.setIncome(config)
+      await api.setIncome({
+        in_hand: income.in_hand,
+        allocations: effectiveAllocations,
+      })
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
     } catch (err) {

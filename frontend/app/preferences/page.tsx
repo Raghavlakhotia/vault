@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { api, BudgetEntry } from '@/lib/api'
+import { api, BudgetEntry, Category, CategoryKind } from '@/lib/api'
 import { formatINR } from '@/lib/utils'
 
 const trashIcon = (
@@ -13,13 +13,14 @@ const trashIcon = (
 )
 
 export default function PreferencesPage() {
-  const [categories, setCategories] = useState<string[]>([])
+  const [categories, setCategories] = useState<Category[]>([])
   const [defaultValues, setDefaultValues] = useState<Record<string, string>>({})
   const [family, setFamily] = useState<string[]>([])
   const [sources, setSources] = useState<string[]>([])
 
   // Add inputs
   const [newCategory, setNewCategory] = useState('')
+  const [newCategoryKind, setNewCategoryKind] = useState<CategoryKind>('Need')
   const [addingCategory, setAddingCategory] = useState(false)
   const [categoryError, setCategoryError] = useState('')
 
@@ -58,7 +59,7 @@ export default function PreferencesPage() {
         setFamily(fam)
         setSources(srcs)
         const init: Record<string, string> = {}
-        cats.forEach((c) => { init[c] = defaults.budgets[c]?.toString() ?? '' })
+        cats.forEach((c) => { init[c.name] = defaults.budgets[c.name]?.toString() ?? '' })
         setDefaultValues(init)
       } catch {
         setLoadError('Failed to load preferences.')
@@ -70,7 +71,7 @@ export default function PreferencesPage() {
   }, [])
 
   const defaultBudgetTotal = categories.reduce((sum, c) => {
-    const n = parseFloat(defaultValues[c] ?? '')
+    const n = parseFloat(defaultValues[c.name] ?? '')
     return sum + (Number.isFinite(n) && n > 0 ? n : 0)
   }, 0)
 
@@ -147,7 +148,7 @@ export default function PreferencesPage() {
     setAddingCategory(true)
     setCategoryError('')
     try {
-      const updated = await api.createCategory(name)
+      const updated = await api.createCategory(name, newCategoryKind)
       setCategories(updated)
       setDefaultValues((prev) => ({ ...prev, [name]: prev[name] ?? '' }))
       setNewCategory('')
@@ -155,6 +156,16 @@ export default function PreferencesPage() {
       setCategoryError(err instanceof Error ? err.message : 'Failed to add category')
     } finally {
       setAddingCategory(false)
+    }
+  }
+
+  async function handleToggleKind(cat: Category) {
+    const next: CategoryKind = cat.kind === 'Need' ? 'Want' : 'Need'
+    try {
+      const updated = await api.updateCategoryKind(cat.name, next)
+      setCategories(updated)
+    } catch (err) {
+      setCategoryError(err instanceof Error ? err.message : 'Failed to update kind')
     }
   }
 
@@ -177,14 +188,15 @@ export default function PreferencesPage() {
     }
   }
 
+
   async function handleSaveDefaults() {
     setSaving(true)
     setSaveError('')
     setSaved(false)
     try {
       const entries: BudgetEntry[] = categories
-        .filter((c) => defaultValues[c] && parseFloat(defaultValues[c]) > 0)
-        .map((c) => ({ category: c, amount: parseFloat(defaultValues[c]) }))
+        .filter((c) => defaultValues[c.name] && parseFloat(defaultValues[c.name]) > 0)
+        .map((c) => ({ category: c.name, amount: parseFloat(defaultValues[c.name]) }))
       await api.setDefaultBudget(entries)
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
@@ -335,6 +347,24 @@ export default function PreferencesPage() {
                 disabled={addingCategory}
                 className="flex-1 bg-[#0f1117] border border-white/[0.07] rounded-lg px-3 py-2 text-[#e4e6f0] text-[13px] focus:outline-none focus:border-indigo-500/50 disabled:opacity-50"
               />
+              <div className="flex bg-[#0f1117] border border-white/[0.07] rounded-lg overflow-hidden text-[12px]">
+                {(['Need', 'Want'] as const).map((k) => (
+                  <button
+                    type="button"
+                    key={k}
+                    onClick={() => setNewCategoryKind(k)}
+                    className={`px-3 py-1.5 transition-colors ${
+                      newCategoryKind === k
+                        ? k === 'Need'
+                          ? 'bg-amber-500/20 text-amber-300'
+                          : 'bg-rose-500/20 text-rose-300'
+                        : 'text-[#6b7280] hover:text-[#9ca3af]'
+                    }`}
+                  >
+                    {k}
+                  </button>
+                ))}
+              </div>
               <button
                 type="submit"
                 disabled={addingCategory || !newCategory.trim()}
@@ -358,6 +388,9 @@ export default function PreferencesPage() {
                         <th className="py-2.5 px-3.5 text-left text-[11px] font-medium text-[#6b7280] uppercase tracking-wider">
                           Category
                         </th>
+                        <th className="py-2.5 px-3.5 text-left text-[11px] font-medium text-[#6b7280] uppercase tracking-wider">
+                          Kind
+                        </th>
                         <th className="py-2.5 px-3.5 text-right text-[11px] font-medium text-[#6b7280] uppercase tracking-wider">
                           Monthly Budget (₹)
                         </th>
@@ -367,20 +400,33 @@ export default function PreferencesPage() {
                     <tbody>
                       {categories.map((cat) => (
                         <tr
-                          key={cat}
+                          key={cat.name}
                           className={`border-b border-white/[0.04] transition-colors ${
-                            deletingCat === cat ? 'opacity-40 bg-red-500/5' : ''
+                            deletingCat === cat.name ? 'opacity-40 bg-red-500/5' : ''
                           }`}
                         >
-                          <td className="py-3 px-3.5 text-[#e4e6f0] font-medium">{cat}</td>
+                          <td className="py-3 px-3.5 text-[#e4e6f0] font-medium">{cat.name}</td>
+                          <td className="py-3 px-3.5">
+                            <button
+                              onClick={() => handleToggleKind(cat)}
+                              className={`text-[10px] px-2 py-0.5 rounded-full transition-colors ${
+                                cat.kind === 'Need'
+                                  ? 'bg-amber-500/15 text-amber-300 hover:bg-amber-500/25'
+                                  : 'bg-rose-500/15 text-rose-300 hover:bg-rose-500/25'
+                              }`}
+                              title="Click to toggle Need / Want"
+                            >
+                              {cat.kind}
+                            </button>
+                          </td>
                           <td className="py-3 px-3.5 flex justify-end">
                             <input
                               type="number"
                               min="0"
                               step="100"
-                              value={defaultValues[cat] ?? ''}
+                              value={defaultValues[cat.name] ?? ''}
                               onChange={(e) =>
-                                setDefaultValues({ ...defaultValues, [cat]: e.target.value })
+                                setDefaultValues({ ...defaultValues, [cat.name]: e.target.value })
                               }
                               className="w-40 bg-[#0f1117] border border-white/[0.07] rounded-lg px-3 py-1.5 text-[#e4e6f0] text-[13px] text-right focus:outline-none focus:border-indigo-500/50"
                               placeholder="0"
@@ -388,9 +434,9 @@ export default function PreferencesPage() {
                           </td>
                           <td className="py-3 px-3.5 text-right">
                             <button
-                              onClick={() => setConfirmDeleteCat(cat)}
-                              disabled={deletingCat === cat}
-                              aria-label={`Delete ${cat}`}
+                              onClick={() => setConfirmDeleteCat(cat.name)}
+                              disabled={deletingCat === cat.name}
+                              aria-label={`Delete ${cat.name}`}
                               className="text-[#4b5563] hover:text-red-400 transition-colors disabled:opacity-50"
                             >
                               {trashIcon}
@@ -402,6 +448,7 @@ export default function PreferencesPage() {
                         <td className="py-3 px-3.5 text-indigo-400 font-semibold text-[11px] uppercase tracking-wider">
                           Total
                         </td>
+                        <td />
                         <td
                           aria-label="Default budget total"
                           className="py-3 px-3.5 text-right text-[#e4e6f0] font-semibold"

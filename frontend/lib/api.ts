@@ -90,6 +90,13 @@ export interface BookMeta {
   order: number
 }
 
+export type CategoryKind = 'Need' | 'Want'
+
+export interface Category {
+  name: string
+  kind: CategoryKind
+}
+
 export interface IncomeSubAllocation {
   name: string
   amount: number
@@ -208,17 +215,24 @@ export const api = {
     }),
 
   getCategories: () =>
-    request<string[]>('/api/categories/'),
+    request<Category[]>('/api/categories/'),
 
-  createCategory: (name: string) =>
-    request<string[]>('/api/categories/', {
+  createCategory: (name: string, kind: CategoryKind = 'Need') =>
+    request<Category[]>('/api/categories/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name }),
+      body: JSON.stringify({ name, kind }),
+    }),
+
+  updateCategoryKind: (name: string, kind: CategoryKind) =>
+    request<Category[]>(`/api/categories/${name}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ kind }),
     }),
 
   deleteCategory: (name: string) =>
-    request<string[]>(`/api/categories/${name}`, { method: 'DELETE' }),
+    request<Category[]>(`/api/categories/${name}`, { method: 'DELETE' }),
 
   getFamily: () =>
     request<string[]>('/api/family/'),

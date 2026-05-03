@@ -21,7 +21,7 @@ function BudgetsInner() {
         api.getCategories(),
         api.getBudgets(month),
       ])
-      setCategories(cats)
+      setCategories(cats.map((c) => c.name))
       setBudgets(budgetRes.budgets)
     } catch {
       setError('Failed to load budgets.')

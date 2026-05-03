@@ -26,7 +26,7 @@ def get_default_budget(current_user: str = Depends(require_auth)):
 
 @router.put("/default", response_model=BudgetResponse)
 def set_default_budget(body: BudgetBatch, current_user: str = Depends(require_auth)):
-    cats = get_categories(current_user)
+    cats = {c["name"] for c in get_categories(current_user)}
     unknown = [e.category for e in body.entries if e.category not in cats]
     if unknown:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=f"Unknown categories: {unknown}. Create them first.")
@@ -45,7 +45,7 @@ def get_month_budget(month: str, current_user: str = Depends(require_auth)):
 @router.put("/{month}", response_model=BudgetResponse)
 def set_month_budgets(month: str, body: BudgetBatch, current_user: str = Depends(require_auth)):
     _validate_month(month)
-    cats = get_categories(current_user)
+    cats = {c["name"] for c in get_categories(current_user)}
     unknown = [e.category for e in body.entries if e.category not in cats]
     if unknown:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=f"Unknown categories: {unknown}. Create them first.")
@@ -60,7 +60,7 @@ def set_month_budgets(month: str, body: BudgetBatch, current_user: str = Depends
 @router.put("/{month}/{category}", response_model=BudgetResponse)
 def set_single_budget(month: str, category: str, amount: float, current_user: str = Depends(require_auth)):
     _validate_month(month)
-    if category not in get_categories(current_user):
+    if category not in {c["name"] for c in get_categories(current_user)}:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Category '{category}' not found.")
     if amount <= 0:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Amount must be positive.")
