@@ -329,11 +329,11 @@ export default function IncomePage() {
         <div className="text-[#6b7280] text-center py-12 text-[13px]">Loading...</div>
       )}
 
-      {!loading && error && !config && (
+      {!loading && error && !income && (
         <p className="text-red-400 text-[12px] mb-3">{error}</p>
       )}
 
-      {!loading && config && (
+      {!loading && income && (
         <>
           {/* In-hand hero card */}
           <section className="bg-[#1a1d27] border border-white/[0.07] rounded-xl p-6 mb-6">
